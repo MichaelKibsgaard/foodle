@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900;
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/10 dark:bg-black/10 backdrop-blur-md border border-white/20 dark:border-white/10;
+    @apply shadow-xl;
+  }
+  
+  .glass-button {
+    @apply bg-white/20 dark:bg-white/10 backdrop-blur-sm border border-white/30 dark:border-white/20;
+    @apply hover:bg-white/30 dark:hover:bg-white/20 transition-all duration-200;
+    @apply shadow-lg hover:shadow-xl;
+  }
+  
+  .ingredient-tile {
+    @apply bg-white/20 dark:bg-white/10 backdrop-blur-sm border border-white/30;
+    @apply rounded-lg p-3 text-center font-medium;
+    @apply transition-all duration-300 hover:scale-105;
+  }
+  
+  .correct-guess {
+    @apply bg-green-500/30 border-green-500/50 text-green-800 dark:text-green-200;
+    @apply animate-pulse;
+  }
+  
+  .incorrect-guess {
+    @apply bg-red-500/30 border-red-500/50 text-red-800 dark:text-red-200;
+    @apply animate-pulse;
+  }
+  
+  .hint-button {
+    @apply bg-yellow-500/30 border-yellow-500/50 text-yellow-800 dark:text-yellow-200;
+    @apply hover:bg-yellow-500/40 transition-all duration-200;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 10px rgba(237, 117, 22, 0.5);
+  }
+} 
