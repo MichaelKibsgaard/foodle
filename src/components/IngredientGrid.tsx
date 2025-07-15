@@ -32,11 +32,11 @@ export const IngredientGrid: React.FC<IngredientGridProps> = ({
   const getTileContent = (ingredient: string, index: number) => {
     const status = getIngredientStatus(ingredient)
     if (status === 'correct') {
-      return <span className="text-vibrant-pink font-bold">{ingredient.toUpperCase()}</span>;
+      return <span className="text-accent-pink font-bold">{ingredient.toUpperCase()}</span>;
     }
     // Show dashes for each letter if not guessed
     return (
-      <span className="font-mono tracking-widest text-vibrant-deep opacity-60">
+      <span className="ingredient-dashes">
         {Array.from({ length: ingredient.length }).map(() => '_').join(' ')}
       </span>
     );
@@ -44,36 +44,24 @@ export const IngredientGrid: React.FC<IngredientGridProps> = ({
 
   return (
     <div className="glass-card rounded-2xl p-6">
-      <h3 className="text-xl font-semibold mb-6 text-center text-wordle-text glow-animation">
+      <h3 className="text-xl font-semibold mb-6 text-center text-wordle-text">
         {recipe.emoji} {recipe.name}
       </h3>
-      
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center">
         {recipe.ingredients.map((ingredient, index) => {
           const status = getIngredientStatus(ingredient)
-          const content = getTileContent(ingredient, index)
-          const isRevealed = correctIngredients.map(c => c.toLowerCase()).includes(ingredient.toLowerCase())
-          
+          const isCorrect = status === 'correct';
           return (
-            <div
-              key={index}
-              className={`
-                wordle-tile hover:scale-105 transition-all duration-300
-                ${status === 'correct' ? 'correct flip-animation' : ''}
-                ${status === 'absent' ? 'absent flip-animation' : ''}
-                ${content && status === 'empty' ? 'filled' : ''}
-                ${isRevealed ? 'correct' : ''}
-              `}
-              style={{
-                animationDelay: `${index * 0.1}s`
-              }}
-            >
-              {content}
+            <div key={index} className="flex flex-col items-center justify-center">
+              <div className="ingredient-box">
+                <span className={`ingredient-dashes whitespace-nowrap ${isCorrect ? 'text-accent-pink font-bold' : ''}`}>
+                  {isCorrect ? ingredient.toUpperCase() : '_'.repeat(ingredient.length)}
+                </span>
+              </div>
             </div>
           )
         })}
       </div>
-      
       <div className="mt-6 text-center">
         <div className="glass-panel inline-block px-4 py-2 rounded-lg">
           <span className="text-sm text-wordle-absent">

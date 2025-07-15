@@ -10,51 +10,51 @@
   }
   
   body {
-    @apply bg-main-gradient bg-no-repeat bg-fixed min-h-screen text-wordle-text;
+    @apply bg-wordle-background text-wordle-text min-h-screen;
     font-family: 'Inter', system-ui, sans-serif;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-glass-card backdrop-blur-md border border-vibrant-pink/20 shadow-xl;
+    @apply bg-white border border-wordle-border rounded-2xl shadow-md;
   }
   
   .glass-panel {
-    @apply bg-glass-white/30 backdrop-blur-lg border border-vibrant-pink/20 shadow-2xl;
+    @apply bg-white border border-wordle-border rounded-xl shadow-sm;
   }
   
   .glass-button {
-    @apply bg-vibrant-light/40 backdrop-blur-sm border border-vibrant-pink/30 hover:bg-vibrant-pink/40 transition-all duration-300 text-vibrant-deep;
+    @apply bg-white border border-wordle-border hover:bg-accent-pink/10 transition-all duration-300 text-wordle-text;
   }
   
   .wordle-tile {
-    @apply w-12 h-12 border-2 border-wordle-border bg-wordle-tile flex items-center justify-center text-xl font-bold uppercase text-vibrant-deep;
-    background: linear-gradient(120deg, #ffb6c1 0%, #ff69b4 100%);
-    color: #b8005c;
-    box-shadow: 0 2px 8px 0 rgba(255, 105, 180, 0.15);
+    @apply w-12 h-12 border-2 border-wordle-border bg-wordle-tile flex items-center justify-center text-xl font-bold uppercase text-wordle-text;
+    background: #fff;
+    color: #111;
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
   }
   
   .wordle-tile.correct {
-    @apply bg-wordle-correct border-wordle-correct text-white;
-    background: linear-gradient(120deg, #ffb6c1 0%, #ff69b4 100%);
+    @apply bg-accent-pink border-accent-pink text-white;
+    background: #ff69b4;
     color: #fff;
   }
   
   .wordle-tile.present {
-    @apply bg-wordle-present border-wordle-present text-vibrant-deep;
-    background: linear-gradient(120deg, #fff0f6 0%, #ffb6c1 100%);
-    color: #b8005c;
+    @apply bg-wordle-present border-wordle-border text-wordle-text;
+    background: #e5e5e5;
+    color: #111;
   }
   
   .wordle-tile.absent {
-    @apply bg-wordle-absent border-wordle-absent text-vibrant-deep;
-    background: linear-gradient(120deg, #f8bbd0 0%, #fff0f6 100%);
-    color: #b8005c;
+    @apply bg-wordle-absent border-wordle-border text-wordle-text;
+    background: #cccccc;
+    color: #111;
   }
   
   .wordle-tile.filled {
-    @apply border-vibrant-deep;
+    @apply border-accent-pink;
   }
   
   .modal-backdrop {
@@ -62,35 +62,40 @@
   }
   
   .modal-content {
-    @apply glass-card rounded-2xl p-6 max-w-md mx-auto mt-20 shadow-2xl;
+    @apply glass-card rounded-2xl p-6 max-w-md mx-auto mt-20 shadow-md;
   }
   
   .btn-primary {
-    @apply bg-wordle-correct hover:bg-wordle-correct/90 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
-    background: linear-gradient(120deg, #ffb6c1 0%, #ff69b4 100%);
+    @apply bg-accent-pink hover:bg-accent-pink/90 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+    background: #ff69b4;
   }
   
   .btn-secondary {
-    @apply bg-wordle-present hover:bg-wordle-present/90 text-vibrant-deep font-semibold py-2 px-4 rounded-lg transition-colors;
-    background: linear-gradient(120deg, #fff0f6 0%, #ffb6c1 100%);
+    @apply bg-white hover:bg-accent-pink/10 text-wordle-text font-semibold py-2 px-4 rounded-lg transition-colors;
   }
   
   .btn-outline {
-    @apply border-2 border-vibrant-pink hover:bg-vibrant-pink/10 text-vibrant-deep font-semibold py-2 px-4 rounded-lg transition-colors;
+    @apply border-2 border-wordle-border hover:bg-accent-pink/10 text-wordle-text font-semibold py-2 px-4 rounded-lg transition-colors;
   }
   
   .glass-nav {
-    @apply glass-panel rounded-xl p-4;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff69b4 100%);
+    @apply glass-panel p-4;
+    background: #fff;
   }
   
   .glass-input {
-    @apply glass-panel rounded-lg px-4 py-2 text-vibrant-deep placeholder-vibrant-deep/60 focus:outline-none focus:ring-2 focus:ring-vibrant-pink/50;
-    background: linear-gradient(120deg, #fff0f6 0%, #ffb6c1 100%);
+    @apply glass-panel rounded-lg px-4 py-2 text-wordle-text placeholder-wordle-text/60 focus:outline-none focus:ring-2 focus:ring-accent-pink/50;
+    background: #fff;
   }
   
   .glass-card-hover {
-    @apply glass-card hover:bg-glass-card/80 hover:scale-105 transition-all duration-300;
+    @apply glass-card hover:shadow-lg hover:scale-105 transition-all duration-300;
+  }
+  .ingredient-box {
+    @apply border-2 border-black bg-white rounded-lg flex items-center justify-center min-w-0 px-2 py-2 mb-1;
+    width: auto;
+    margin: 0 auto;
+    display: inline-flex;
   }
 }
 
@@ -108,7 +113,21 @@
   }
   
   .glow-animation {
-    animation: glow 2s ease-in-out infinite alternate;
+    /* removed for minimal look */
+    box-shadow: none !important;
+    animation: none !important;
+  }
+  .ingredient-dashes {
+    font-size: 1.1rem;
+    color: #222;
+    opacity: 0.7;
+    letter-spacing: 0.08em;
+    font-family: 'Fira Mono', 'Consolas', monospace;
+    font-weight: 400;
+    white-space: pre;
+    text-align: center;
+    width: 100%;
+    display: block;
   }
 }
 

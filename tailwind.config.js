@@ -12,31 +12,26 @@ module.exports = {
       },
       colors: {
         wordle: {
-          correct: '#ff69b4', // vibrant pink for correct
-          present: '#ffb6c1', // light pink for present
-          absent: '#f8bbd0', // pale pink for absent
-          tile: '#fff0f6', // very light pink tile background
-          border: '#ff69b4', // pink border
-          text: '#b8005c', // deep pink text
-          background: 'linear-gradient(135deg, #fff0f6 0%, #ffb6c1 100%)',
+          correct: '#ff69b4', // pink accent for correct
+          present: '#e5e5e5', // light gray for present
+          absent: '#cccccc', // gray for absent
+          tile: '#ffffff', // white tile background
+          border: '#222222', // black border
+          text: '#111111', // black text
+          background: '#fafafa', // very light gray background
         },
         glass: {
-          white: 'rgba(255, 240, 246, 0.7)',
-          dark: 'rgba(255, 182, 193, 0.2)',
-          card: 'rgba(255, 240, 246, 0.95)',
-          backdrop: 'rgba(255, 182, 193, 0.5)',
+          white: 'rgba(255,255,255,0.8)',
+          dark: 'rgba(0,0,0,0.05)',
+          card: 'rgba(255,255,255,0.95)',
+          backdrop: 'rgba(0,0,0,0.2)',
         },
-        vibrant: {
+        accent: {
           pink: '#ff69b4',
-          light: '#ffb6c1',
-          pale: '#fff0f6',
-          deep: '#b8005c',
         },
       },
       backgroundImage: {
-        'main-gradient': 'linear-gradient(135deg, #fff0f6 0%, #ffb6c1 100%)',
-        'vibrant-radial': 'radial-gradient(circle at 20% 80%, #ff69b4 0%, #ffb6c1 100%)',
-        'vibrant-linear': 'linear-gradient(120deg, #ffb6c1 0%, #ff69b4 100%)',
+        'main-gradient': 'none',
       },
       backdropBlur: {
         xs: '2px',

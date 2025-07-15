@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { IngredientGrid } from '@/components/IngredientGrid';
 import { GameInput } from '@/components/GameInput';
@@ -23,6 +23,22 @@ const HowToPlayModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
   </div>
 );
 
+function getTimeToNextUTCMidnight() {
+  const now = new Date();
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  return next.getTime() - now.getTime();
+}
+
+function formatTime(ms: number) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes
+    .toString()
+    .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
 export default function Home() {
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showGame, setShowGame] = useState(false);
@@ -38,7 +54,17 @@ export default function Home() {
     useHint,
     handleSubmit,
     startNewGame,
+    loadingRecipe,
   } = useGame();
+
+  // Timer for next game
+  const [timeLeft, setTimeLeft] = useState(getTimeToNextUTCMidnight());
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft(getTimeToNextUTCMidnight());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Landing page
   if (!showGame) {
@@ -64,8 +90,22 @@ export default function Home() {
   }
 
   // Main game UI
+  if (loadingRecipe) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-wordle-background">
+        <div className="glass-card rounded-2xl p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-pink mx-auto mb-4"></div>
+          <p className="mt-4 text-wordle-absent">Loading today&apos;s recipe...</p>
+        </div>
+      </main>
+    );
+  }
   return (
-    <main className="min-h-screen py-8 bg-main-gradient">
+    <main className="min-h-screen py-8 bg-wordle-background">
+      <div className="text-center text-accent-pink font-semibold mb-4">
+        Everyone is playing the same recipe today! Come back tomorrow for a new challenge.<br />
+        <span className="text-sm text-wordle-text font-normal">Next recipe in {formatTime(timeLeft)}</span>
+      </div>
       <Header
         gameStatus={gameState.gameStatus}
         attempts={gameState.attempts}
@@ -112,7 +152,7 @@ export default function Home() {
       {hints.some(hint => hint.revealed) && (
         <div className="w-full max-w-4xl mx-auto px-4 mt-8">
           <div className="glass-card rounded-2xl p-6">
-            <h3 className="text-xl font-semibold mb-4 text-center text-vibrant-pink">
+            <h3 className="text-xl font-semibold mb-4 text-center text-accent-pink">
               💡 Hints
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -123,8 +163,8 @@ export default function Home() {
                     key={index}
                     className="glass-panel p-4 rounded-lg text-center hover:scale-105 transition-all duration-300"
                   >
-                    <div className="font-medium capitalize text-vibrant-deep">{hint.ingredient}</div>
-                    <div className="text-sm text-vibrant-pink mt-1">
+                    <div className="font-medium capitalize text-wordle-text">{hint.ingredient}</div>
+                    <div className="text-sm text-accent-pink mt-1">
                       {hint.type === 'letter_count' && `${hint.ingredient.length} letters`}
                       {hint.type === 'first_letter' && `Starts with "${hint.ingredient[0]}"`}
                       {hint.type === 'full_ingredient' && 'Full ingredient revealed'}

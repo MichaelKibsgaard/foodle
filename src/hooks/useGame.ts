@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { GameState, Recipe, Hint } from '@/types/game'
-import { getRandomRecipe } from '@/lib/gameData'
+import { supabase } from '@/lib/supabase'
 
 const MAX_ATTEMPTS = 5
 const MAX_HINTS = 3
+
+function getTodayUTCDateString() {
+  const now = new Date()
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString().slice(0, 10)
+}
 
 export const useGame = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -20,16 +25,27 @@ export const useGame = () => {
 
   const [hints, setHints] = useState<Hint[]>([])
   const [inputValue, setInputValue] = useState('')
+  const [loadingRecipe, setLoadingRecipe] = useState(true)
 
-  // Initialize new game
-  const startNewGame = useCallback(() => {
-    const recipe = getRandomRecipe()
-    const newHints: Hint[] = recipe.ingredients.map(ingredient => ({
+  // Fetch today's recipe by UTC date
+  const fetchTodaysRecipe = useCallback(async () => {
+    setLoadingRecipe(true)
+    const today = getTodayUTCDateString()
+    const { data: recipe, error } = await supabase
+      .from('recipes')
+      .select('*')
+      .eq('date', today)
+      .single()
+    if (error || !recipe) {
+      setGameState(prev => ({ ...prev, currentRecipe: null }))
+      setLoadingRecipe(false)
+      return
+    }
+    const newHints: Hint[] = recipe.ingredients.map((ingredient: string) => ({
       type: 'letter_count',
       ingredient,
       revealed: false,
     }))
-
     setGameState({
       currentRecipe: recipe,
       guessedIngredients: [],
@@ -43,7 +59,13 @@ export const useGame = () => {
     })
     setHints(newHints)
     setInputValue('')
+    setLoadingRecipe(false)
   }, [])
+
+  // Initialize game on mount
+  useEffect(() => {
+    fetchTodaysRecipe()
+  }, [fetchTodaysRecipe])
 
   // Make a guess
   const makeGuess = useCallback((ingredient: string) => {
@@ -109,10 +131,43 @@ export const useGame = () => {
     }
   }, [inputValue, makeGuess])
 
-  // Initialize game on mount
+  // Save stats to Supabase after game ends
   useEffect(() => {
-    startNewGame()
-  }, [startNewGame])
+    const saveStats = async () => {
+      if (!gameState.currentRecipe || !['won', 'lost'].includes(gameState.gameStatus)) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      // Fetch current stats
+      let { data: stats } = await supabase
+        .from('user_stats')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      const won = gameState.gameStatus === 'won';
+      let newStats = {
+        games_played: 1,
+        games_won: won ? 1 : 0,
+        current_streak: won ? 1 : 0,
+        best_streak: won ? 1 : 0,
+        last_played: new Date().toISOString(),
+      };
+      if (stats) {
+        newStats.games_played = stats.games_played + 1;
+        newStats.games_won = stats.games_won + (won ? 1 : 0);
+        newStats.current_streak = won ? stats.current_streak + 1 : 0;
+        newStats.best_streak = won
+          ? Math.max(stats.best_streak, stats.current_streak + 1)
+          : stats.best_streak;
+        newStats.last_played = new Date().toISOString();
+      }
+      await supabase.from('user_stats').upsert({
+        user_id: user.id,
+        ...newStats,
+      });
+    };
+    saveStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState.gameStatus]);
 
   return {
     gameState,
@@ -122,6 +177,7 @@ export const useGame = () => {
     makeGuess,
     useHint,
     handleSubmit,
-    startNewGame,
+    startNewGame: fetchTodaysRecipe,
+    loadingRecipe,
   }
 } 
