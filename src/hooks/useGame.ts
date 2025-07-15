@@ -61,7 +61,7 @@ export const useGame = () => {
         ...prev,
         correctIngredients: newCorrectIngredients,
         guessedIngredients: newGuessedIngredients,
-        attempts: prev.attempts + 1,
+        // attempts is NOT incremented for correct guesses
         gameStatus: newCorrectIngredients.length === gameState.currentRecipe!.ingredients.length ? 'won' : 'playing',
         endTime: newCorrectIngredients.length === gameState.currentRecipe!.ingredients.length ? Date.now() : undefined,
       }))

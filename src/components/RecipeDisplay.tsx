@@ -20,32 +20,38 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
-      <div className="glass-card rounded-2xl p-8 text-center">
-        <div className="mb-6">
-          <div className="text-8xl mb-4 animate-bounce-slow">
-            {recipe.emoji}
-          </div>
-          <h2 className="text-4xl font-bold mb-2 text-shadow">
-            {recipe.name}
-          </h2>
-          <div className="flex items-center justify-center space-x-4">
+    <div className="glass-card rounded-2xl p-8 text-center">
+      <div className="mb-6">
+        <div className="text-8xl mb-4 animate-bounce-slow">
+          {recipe.emoji}
+        </div>
+        <h2 className="text-4xl font-bold mb-2 text-shadow glow-animation">
+          {recipe.name}
+        </h2>
+        <div className="flex items-center justify-center space-x-4">
+          <div className="glass-panel px-3 py-1 rounded-lg">
             <span className={`text-sm font-medium ${getDifficultyColor(recipe.difficulty)}`}>
               {recipe.difficulty.toUpperCase()}
             </span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+          </div>
+          <div className="glass-panel px-3 py-1 rounded-lg">
+            <span className="text-sm text-wordle-absent">
               {recipe.category}
             </span>
           </div>
         </div>
-        
-        {recipe.description && (
-          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+      </div>
+      
+      {recipe.description && (
+        <div className="glass-panel p-4 rounded-lg mb-6 max-w-2xl mx-auto">
+          <p className="text-wordle-absent">
             {recipe.description}
           </p>
-        )}
-        
-        <div className="text-sm text-gray-500 dark:text-gray-400">
+        </div>
+      )}
+      
+      <div className="glass-panel inline-block px-4 py-2 rounded-lg">
+        <div className="text-sm text-wordle-absent">
           Find {recipe.ingredients.length} ingredients to complete this recipe!
         </div>
       </div>

@@ -1,8 +1,10 @@
+'use client'
+
 import React from 'react'
-import { Check, X } from 'lucide-react'
+import { Recipe } from '@/types/game'
 
 interface IngredientGridProps {
-  recipe: any
+  recipe: Recipe
   guessedIngredients: string[]
   correctIngredients: string[]
 }
@@ -12,52 +14,72 @@ export const IngredientGrid: React.FC<IngredientGridProps> = ({
   guessedIngredients,
   correctIngredients,
 }) => {
-  const isCorrectGuess = (ingredient: string) => {
-    return correctIngredients.includes(ingredient.toLowerCase())
+  const getIngredientStatus = (ingredient: string) => {
+    const normalizedIngredient = ingredient.toLowerCase()
+    const normalizedGuessed = guessedIngredients.map(g => g.toLowerCase())
+    
+    if (correctIngredients.map(c => c.toLowerCase()).includes(normalizedIngredient)) {
+      return 'correct'
+    }
+    
+    if (normalizedGuessed.includes(normalizedIngredient)) {
+      return 'absent'
+    }
+    
+    return 'empty'
   }
 
-  const isIncorrectGuess = (ingredient: string) => {
-    return guessedIngredients.includes(ingredient.toLowerCase()) && 
-           !correctIngredients.includes(ingredient.toLowerCase())
+  const getTileContent = (ingredient: string, index: number) => {
+    const status = getIngredientStatus(ingredient)
+    if (status === 'correct') {
+      return <span className="text-vibrant-pink font-bold">{ingredient.toUpperCase()}</span>;
+    }
+    // Show dashes for each letter if not guessed
+    return (
+      <span className="font-mono tracking-widest text-vibrant-deep opacity-60">
+        {Array.from({ length: ingredient.length }).map(() => '_').join(' ')}
+      </span>
+    );
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
-      <div className="glass-card rounded-2xl p-6">
-        <h3 className="text-xl font-semibold mb-4 text-center">
-          Your Guesses
-        </h3>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {guessedIngredients.map((ingredient, index) => (
+    <div className="glass-card rounded-2xl p-6">
+      <h3 className="text-xl font-semibold mb-6 text-center text-wordle-text glow-animation">
+        {recipe.emoji} {recipe.name}
+      </h3>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {recipe.ingredients.map((ingredient, index) => {
+          const status = getIngredientStatus(ingredient)
+          const content = getTileContent(ingredient, index)
+          const isRevealed = correctIngredients.map(c => c.toLowerCase()).includes(ingredient.toLowerCase())
+          
+          return (
             <div
               key={index}
-              className={`ingredient-tile ${
-                isCorrectGuess(ingredient)
-                  ? 'correct-guess'
-                  : isIncorrectGuess(ingredient)
-                  ? 'incorrect-guess'
-                  : ''
-              }`}
+              className={`
+                wordle-tile hover:scale-105 transition-all duration-300
+                ${status === 'correct' ? 'correct flip-animation' : ''}
+                ${status === 'absent' ? 'absent flip-animation' : ''}
+                ${content && status === 'empty' ? 'filled' : ''}
+                ${isRevealed ? 'correct' : ''}
+              `}
+              style={{
+                animationDelay: `${index * 0.1}s`
+              }}
             >
-              <div className="flex items-center justify-between">
-                <span className="capitalize">{ingredient}</span>
-                {isCorrectGuess(ingredient) && (
-                  <Check className="w-4 h-4 text-green-600" />
-                )}
-                {isIncorrectGuess(ingredient) && (
-                  <X className="w-4 h-4 text-red-600" />
-                )}
-              </div>
+              {content}
             </div>
-          ))}
+          )
+        })}
+      </div>
+      
+      <div className="mt-6 text-center">
+        <div className="glass-panel inline-block px-4 py-2 rounded-lg">
+          <span className="text-sm text-wordle-absent">
+            {correctIngredients.length} of {recipe.ingredients.length} ingredients found
+          </span>
         </div>
-        
-        {guessedIngredients.length === 0 && (
-          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-            Start guessing ingredients to see them here!
-          </div>
-        )}
       </div>
     </div>
   )

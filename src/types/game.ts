@@ -6,6 +6,8 @@ export interface Recipe {
   difficulty: 'easy' | 'medium' | 'hard';
   category: string;
   description?: string;
+  cookTime?: number; // in minutes
+  servings?: number; // number of people served
 }
 
 export interface GameState {

@@ -1,14 +1,11 @@
 import React from 'react'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
-
 export const metadata: Metadata = {
-  title: 'Foodle - Food Ingredient Guessing Game',
-  description: 'A fun word-guessing game where you guess ingredients needed to make delicious dishes!',
-  keywords: ['game', 'food', 'ingredients', 'wordle', 'puzzle'],
+  title: 'FOODLE - Food Ingredient Guessing Game',
+  description: 'Guess the ingredients in delicious recipes! A Wordle-inspired food guessing game.',
+  keywords: ['foodle', 'wordle', 'food', 'game', 'ingredients', 'recipes', 'guessing'],
   authors: [{ name: 'Foodle Team' }],
   viewport: 'width=device-width, initial-scale=1',
 }
@@ -19,11 +16,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} antialiased`}>
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          {children}
-        </div>
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" 
+          rel="stylesheet" 
+        />
+      </head>
+      <body className="font-sans antialiased">
+        {children}
       </body>
     </html>
   )

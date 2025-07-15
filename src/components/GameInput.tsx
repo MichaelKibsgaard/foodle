@@ -1,5 +1,7 @@
-import React from 'react'
-import { Send, Lightbulb } from 'lucide-react'
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import { Lightbulb, Send } from 'lucide-react'
 
 interface GameInputProps {
   value: string
@@ -22,54 +24,74 @@ export const GameInput: React.FC<GameInputProps> = ({
   maxHints,
   gameStatus,
 }) => {
+  const [isShaking, setIsShaking] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!value.trim()) {
+      setIsShaking(true)
+      setTimeout(() => setIsShaking(false), 500)
+      return
+    }
+    onSubmit(e)
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit(e as any)
+    }
+  }
+
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
-      <div className="glass-card rounded-2xl p-6">
-        <form onSubmit={onSubmit} className="flex items-center space-x-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              placeholder="Type an ingredient..."
-              disabled={disabled || gameStatus !== 'playing'}
-              className="w-full px-4 py-3 rounded-xl bg-white/20 dark:bg-white/10 
-                         border border-white/30 dark:border-white/20 
-                         text-gray-900 dark:text-white placeholder-gray-500
-                         focus:outline-none focus:ring-2 focus:ring-primary-500
-                         disabled:opacity-50 disabled:cursor-not-allowed
-                         backdrop-blur-sm"
-            />
+    <div className="glass-card rounded-2xl p-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Input Field */}
+        <div className="relative">
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={disabled}
+            placeholder="Enter an ingredient..."
+            className={`
+              glass-input w-full px-4 py-3 text-lg font-semibold text-center
+              disabled:opacity-50 disabled:cursor-not-allowed
+              ${isShaking ? 'shake-animation' : ''}
+              text-wordle-text placeholder-wordle-text/60
+            `}
+            maxLength={20}
+          />
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <button
+              type="submit"
+              disabled={disabled || !value.trim()}
+              className="glass-button p-2 rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            >
+              <Send className="w-4 h-4 text-wordle-text" />
+            </button>
           </div>
-          
-          <button
-            type="submit"
-            disabled={disabled || gameStatus !== 'playing' || !value.trim()}
-            className="glass-button px-6 py-3 rounded-xl font-medium
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       flex items-center space-x-2"
-          >
-            <Send className="w-5 h-5" />
-            <span>Guess</span>
-          </button>
-          
+        </div>
+
+        {/* Hint Button */}
+        <div className="flex justify-center">
           <button
             type="button"
             onClick={onHint}
-            disabled={disabled || gameStatus !== 'playing' || hintsUsed >= maxHints}
-            className="hint-button px-4 py-3 rounded-xl font-medium
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       flex items-center space-x-2"
+            disabled={disabled || hintsUsed >= maxHints}
+            className="glass-button flex items-center space-x-2 px-4 py-2 rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-wordle-text font-semibold"
           >
-            <Lightbulb className={`w-5 h-5 ${hintsUsed > 0 ? 'animate-pulse-slow' : ''}`} />
-            <span>Hint</span>
+            <Lightbulb className="w-4 h-4" />
+            <span>Hint ({hintsUsed}/{maxHints})</span>
           </button>
-        </form>
-        
-        <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          Press Enter to submit your guess
         </div>
-      </div>
+
+        {/* Instructions */}
+        <div className="text-center text-sm text-wordle-absent">
+          <p>Guess the ingredients in the recipe. Correct guesses don't count against your attempts!</p>
+          <p className="mt-1">You have {maxHints - hintsUsed} hints remaining.</p>
+        </div>
+      </form>
     </div>
   )
 } 

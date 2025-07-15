@@ -1,5 +1,11 @@
-import React from 'react'
-import { Trophy, Target, Clock } from 'lucide-react'
+'use client'
+
+import React, { useState } from 'react'
+import { BookOpen, BarChart3 } from 'lucide-react'
+import { StatisticsModal } from './StatisticsModal'
+import { CookbookModal } from './CookbookModal'
+import { AuthModal } from './AuthModal';
+import { supabase } from '@/lib/supabase';
 
 interface HeaderProps {
   gameStatus: 'playing' | 'won' | 'lost'
@@ -16,50 +22,111 @@ export const Header: React.FC<HeaderProps> = ({
   hintsUsed,
   maxHints,
 }) => {
+  const [showStats, setShowStats] = useState(false);
+  const [showCookbook, setShowCookbook] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  React.useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    getUser();
+    const { data: listener } = supabase.auth.onAuthStateChange(() => getUser());
+    return () => { listener?.subscription.unsubscribe(); };
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   return (
-    <header className="w-full max-w-4xl mx-auto p-6">
-      <div className="glass-card rounded-2xl p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <h1 className="text-3xl font-bold text-glow">
-              🍽️ Foodle
+    <>
+      <header className="w-full max-w-4xl mx-auto px-4 py-4">
+        <div className="glass-nav flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold text-wordle-text font-roberto glow-animation">
+              FOODLE
             </h1>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Food Ingredient Guessing Game
-            </span>
           </div>
-          
+
+          {/* Game Info */}
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-primary-500" />
-              <span className="text-sm font-medium">
-                {attempts}/{maxAttempts}
-              </span>
+            <div className="glass-panel px-3 py-1 rounded-lg">
+              <div className="text-sm text-wordle-text">
+                <span className="font-semibold">{attempts}</span>
+                <span className="text-wordle-absent">/{maxAttempts}</span>
+              </div>
             </div>
-            
-            <div className="flex items-center space-x-2">
-              <Trophy className="w-5 h-5 text-yellow-500" />
-              <span className="text-sm font-medium">
-                {hintsUsed}/{maxHints}
-              </span>
-            </div>
-            
-            {gameStatus === 'won' && (
-              <div className="flex items-center space-x-2 text-green-500">
-                <Trophy className="w-5 h-5" />
-                <span className="text-sm font-medium">Winner!</span>
+            {gameStatus === 'playing' && (
+              <div className="glass-panel px-3 py-1 rounded-lg">
+                <div className="text-sm text-wordle-text">
+                  <span className="font-semibold">{hintsUsed}</span>
+                  <span className="text-wordle-absent">/{maxHints} hints</span>
+                </div>
               </div>
             )}
-            
-            {gameStatus === 'lost' && (
-              <div className="flex items-center space-x-2 text-red-500">
-                <Clock className="w-5 h-5" />
-                <span className="text-sm font-medium">Game Over</span>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowCookbook(true)}
+              className="glass-button p-2 rounded-lg hover:scale-105 transition-all duration-300"
+              title="Cookbook"
+            >
+              <span role="img" aria-label="Cookbook">📖</span>
+            </button>
+            <button
+              onClick={() => setShowStats(true)}
+              className="glass-button p-2 rounded-lg hover:scale-105 transition-all duration-300"
+              title="Statistics"
+            >
+              <span role="img" aria-label="Stats">📊</span>
+            </button>
+            {/* User/Account Button */}
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-wordle-text text-sm">{user.email}</span>
+                <button
+                  onClick={handleSignOut}
+                  className="glass-button px-3 py-1 rounded-lg text-xs"
+                >
+                  Sign Out
+                </button>
               </div>
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                className="glass-button px-3 py-1 rounded-lg text-xs"
+              >
+                Sign In
+              </button>
             )}
           </div>
         </div>
-      </div>
-    </header>
-  )
-} 
+      </header>
+      {/* Modals */}
+      {showStats && (
+        <StatisticsModal
+          onClose={() => setShowStats(false)}
+          gameStatus={gameStatus}
+          attempts={attempts}
+          maxAttempts={maxAttempts}
+          hintsUsed={hintsUsed}
+        />
+      )}
+      {showCookbook && (
+        <CookbookModal
+          onClose={() => setShowCookbook(false)}
+        />
+      )}
+      {showAuth && (
+        <AuthModal onClose={() => setShowAuth(false)} />
+      )}
+    </>
+  );
+}; 

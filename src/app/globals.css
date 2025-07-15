@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,51 +10,121 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900;
-    @apply min-h-screen;
+    @apply bg-main-gradient bg-no-repeat bg-fixed min-h-screen text-wordle-text;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-white/10 dark:bg-black/10 backdrop-blur-md border border-white/20 dark:border-white/10;
-    @apply shadow-xl;
+    @apply bg-glass-card backdrop-blur-md border border-vibrant-pink/20 shadow-xl;
+  }
+  
+  .glass-panel {
+    @apply bg-glass-white/30 backdrop-blur-lg border border-vibrant-pink/20 shadow-2xl;
   }
   
   .glass-button {
-    @apply bg-white/20 dark:bg-white/10 backdrop-blur-sm border border-white/30 dark:border-white/20;
-    @apply hover:bg-white/30 dark:hover:bg-white/20 transition-all duration-200;
-    @apply shadow-lg hover:shadow-xl;
+    @apply bg-vibrant-light/40 backdrop-blur-sm border border-vibrant-pink/30 hover:bg-vibrant-pink/40 transition-all duration-300 text-vibrant-deep;
   }
   
-  .ingredient-tile {
-    @apply bg-white/20 dark:bg-white/10 backdrop-blur-sm border border-white/30;
-    @apply rounded-lg p-3 text-center font-medium;
-    @apply transition-all duration-300 hover:scale-105;
+  .wordle-tile {
+    @apply w-12 h-12 border-2 border-wordle-border bg-wordle-tile flex items-center justify-center text-xl font-bold uppercase text-vibrant-deep;
+    background: linear-gradient(120deg, #ffb6c1 0%, #ff69b4 100%);
+    color: #b8005c;
+    box-shadow: 0 2px 8px 0 rgba(255, 105, 180, 0.15);
   }
   
-  .correct-guess {
-    @apply bg-green-500/30 border-green-500/50 text-green-800 dark:text-green-200;
-    @apply animate-pulse;
+  .wordle-tile.correct {
+    @apply bg-wordle-correct border-wordle-correct text-white;
+    background: linear-gradient(120deg, #ffb6c1 0%, #ff69b4 100%);
+    color: #fff;
   }
   
-  .incorrect-guess {
-    @apply bg-red-500/30 border-red-500/50 text-red-800 dark:text-red-200;
-    @apply animate-pulse;
+  .wordle-tile.present {
+    @apply bg-wordle-present border-wordle-present text-vibrant-deep;
+    background: linear-gradient(120deg, #fff0f6 0%, #ffb6c1 100%);
+    color: #b8005c;
   }
   
-  .hint-button {
-    @apply bg-yellow-500/30 border-yellow-500/50 text-yellow-800 dark:text-yellow-200;
-    @apply hover:bg-yellow-500/40 transition-all duration-200;
+  .wordle-tile.absent {
+    @apply bg-wordle-absent border-wordle-absent text-vibrant-deep;
+    background: linear-gradient(120deg, #f8bbd0 0%, #fff0f6 100%);
+    color: #b8005c;
+  }
+  
+  .wordle-tile.filled {
+    @apply border-vibrant-deep;
+  }
+  
+  .modal-backdrop {
+    @apply fixed inset-0 bg-glass-backdrop backdrop-blur-sm z-50;
+  }
+  
+  .modal-content {
+    @apply glass-card rounded-2xl p-6 max-w-md mx-auto mt-20 shadow-2xl;
+  }
+  
+  .btn-primary {
+    @apply bg-wordle-correct hover:bg-wordle-correct/90 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+    background: linear-gradient(120deg, #ffb6c1 0%, #ff69b4 100%);
+  }
+  
+  .btn-secondary {
+    @apply bg-wordle-present hover:bg-wordle-present/90 text-vibrant-deep font-semibold py-2 px-4 rounded-lg transition-colors;
+    background: linear-gradient(120deg, #fff0f6 0%, #ffb6c1 100%);
+  }
+  
+  .btn-outline {
+    @apply border-2 border-vibrant-pink hover:bg-vibrant-pink/10 text-vibrant-deep font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .glass-nav {
+    @apply glass-panel rounded-xl p-4;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff69b4 100%);
+  }
+  
+  .glass-input {
+    @apply glass-panel rounded-lg px-4 py-2 text-vibrant-deep placeholder-vibrant-deep/60 focus:outline-none focus:ring-2 focus:ring-vibrant-pink/50;
+    background: linear-gradient(120deg, #fff0f6 0%, #ffb6c1 100%);
+  }
+  
+  .glass-card-hover {
+    @apply glass-card hover:bg-glass-card/80 hover:scale-105 transition-all duration-300;
   }
 }
 
 @layer utilities {
   .text-shadow {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
   
-  .text-glow {
-    text-shadow: 0 0 10px rgba(237, 117, 22, 0.5);
+  .flip-animation {
+    animation: flip 0.6s ease-in-out;
   }
+  
+  .shake-animation {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  .glow-animation {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(106, 170, 100, 0.5); }
+  100% { box-shadow: 0 0 20px rgba(106, 170, 100, 0.8); }
+}
+
+@keyframes flip {
+  0% { transform: rotateX(0deg); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0deg); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 } 
