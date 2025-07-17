@@ -1,4 +1,5 @@
 import { Recipe } from '@/types/game'
+import { supabase } from './supabase';
 
 export const sampleRecipes: Recipe[] = [
   {
@@ -104,4 +105,37 @@ export const getRecipeByDifficulty = (difficulty: 'easy' | 'medium' | 'hard'): R
 
 export const getRecipeById = (id: string): Recipe | undefined => {
   return sampleRecipes.find(recipe => recipe.id === id)
-} 
+}
+
+export const getRandomSavedRecipe = async () => {
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (error || !data || data.length === 0) return null;
+  return data[0];
+};
+
+export const getNextUnusedRecipes = async (count = 3) => {
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('*')
+    .is('used_on', null)
+    .order('created_at', { ascending: true })
+    .limit(count);
+  if (error || !data) return [];
+  return data;
+};
+
+export const markRecipeAsUsedToday = async (id: string) => {
+  // Get today's date in AEST (UTC+10)
+  const now = new Date();
+  const aestOffset = 10 * 60 * 60 * 1000;
+  const aestDate = new Date(now.getTime() + aestOffset).toISOString().slice(0, 10);
+  const { error } = await supabase
+    .from('recipes')
+    .update({ used_on: aestDate })
+    .eq('id', id);
+  return !error;
+}; 

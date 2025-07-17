@@ -1,8 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html, body, * {
+  font-family: 'Inter', sans-serif;
+}
 
 @layer base {
   html {
@@ -91,6 +95,30 @@
   .glass-card-hover {
     @apply glass-card hover:shadow-lg hover:scale-105 transition-all duration-300;
   }
+  .shine-btn {
+    position: relative;
+    overflow: hidden;
+  }
+  .shine-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(120deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.0) 100%);
+    transform: skewX(-20deg);
+    pointer-events: none;
+    animation: shine-move 2.2s infinite alternate;
+  }
+  .shine-btn:hover::before, .shine-btn:active::before {
+    animation: shine-move 0.7s forwards;
+  }
+  .shimmer-gradient {
+    background: linear-gradient(90deg, #f472b6 0%, #fbbf24 50%, #f472b6 100%, #f472b6 100%);
+    background-size: 200% 200%;
+    animation: shimmer-gradient-move 2.5s linear infinite;
+  }
   .ingredient-box {
     @apply border-2 border-black bg-white rounded-lg flex items-center justify-center min-w-0 px-2 py-2 mb-1;
     width: auto;
@@ -146,4 +174,40 @@
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-5px); }
   75% { transform: translateX(5px); }
+} 
+
+.bg-wordle-background {
+  background: linear-gradient(135deg, #F88379 0%, #FFFAE7 100%);
+} 
+
+/* Ingredient box animations */
+.animate-pop {
+  animation: pop 0.4s;
+}
+@keyframes pop {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 #f472b6; }
+  60% { transform: scale(1.15); box-shadow: 0 0 16px 4px #f472b6; }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 #f472b6; }
+}
+.animate-shake {
+  animation: shake 0.4s;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+} 
+
+@keyframes shine-move {
+  0% { left: -75%; }
+  100% { left: 120%; }
+} 
+
+@keyframes shimmer-gradient-move {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
 } 

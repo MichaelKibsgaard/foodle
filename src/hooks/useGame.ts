@@ -169,6 +169,28 @@ export const useGame = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.gameStatus]);
 
+  // Start a practice game with a given recipe
+  const startPracticeGame = useCallback((recipe: Recipe) => {
+    const newHints: Hint[] = recipe.ingredients.map((ingredient: string) => ({
+      type: 'letter_count',
+      ingredient,
+      revealed: false,
+    }));
+    setGameState({
+      currentRecipe: recipe,
+      guessedIngredients: [],
+      correctIngredients: [],
+      attempts: 0,
+      maxAttempts: MAX_ATTEMPTS,
+      gameStatus: 'playing',
+      hintsUsed: 0,
+      maxHints: MAX_HINTS,
+      startTime: Date.now(),
+    });
+    setHints(newHints);
+    setInputValue('');
+  }, []);
+
   return {
     gameState,
     hints,
@@ -179,5 +201,6 @@ export const useGame = () => {
     handleSubmit,
     startNewGame: fetchTodaysRecipe,
     loadingRecipe,
+    startPracticeGame,
   }
 } 
