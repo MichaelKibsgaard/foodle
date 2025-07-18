@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Lightbulb, Send } from 'lucide-react'
 
 interface GameInputProps {
@@ -24,27 +24,40 @@ export const GameInput: React.FC<GameInputProps> = ({
   maxHints,
   gameStatus,
 }) => {
-  const [isShaking, setIsShaking] = useState(false)
+  const [isShaking, setIsShaking] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const correctSound = useRef<HTMLAudioElement | null>(null);
+  const incorrectSound = useRef<HTMLAudioElement | null>(null);
+  const hintSound = useRef<HTMLAudioElement | null>(null);
+
+  const playSound = (type: 'correct' | 'incorrect' | 'hint') => {
+    if (muted) return;
+    if (type === 'correct') correctSound.current?.play();
+    if (type === 'incorrect') incorrectSound.current?.play();
+    if (type === 'hint') hintSound.current?.play();
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!value.trim()) {
-      setIsShaking(true)
-      setTimeout(() => setIsShaking(false), 500)
-      return
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
+      playSound('incorrect');
+      return;
     }
-    onSubmit(e)
-  }
+    onSubmit(e);
+    // Play correct/incorrect sound based on game logic (to be handled in parent)
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSubmit(e as any)
+      handleSubmit(e as any);
     }
-  }
+  };
 
   return (
     <div className="glass-card rounded-2xl p-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" aria-label="Guess an ingredient">
         {/* Input Field */}
         <div className="relative">
           <input
@@ -59,33 +72,46 @@ export const GameInput: React.FC<GameInputProps> = ({
               disabled:opacity-50 disabled:cursor-not-allowed
               ${isShaking ? 'shake-animation' : ''}
               text-wordle-text placeholder-wordle-text/60
+              focus:ring-2 focus:ring-accent-pink
             `}
             maxLength={20}
+            aria-label="Ingredient guess input"
+            autoFocus
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-2">
             <button
               type="submit"
               disabled={disabled || !value.trim()}
-              className="glass-button p-2 rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              className="glass-button p-2 rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+              aria-label="Submit guess"
             >
               <Send className="w-4 h-4 text-wordle-text" />
             </button>
+            <button
+              type="button"
+              onClick={() => setMuted(m => !m)}
+              className="glass-button p-2 rounded-lg hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+              aria-label={muted ? 'Unmute sound effects' : 'Mute sound effects'}
+            >
+              {muted ? '🔇' : '🔊'}
+            </button>
           </div>
         </div>
-
+        {/* Sound elements */}
+        <audio ref={correctSound} src="/sounds/correct.mp3" preload="auto" />
+        <audio ref={incorrectSound} src="/sounds/incorrect.mp3" preload="auto" />
+        <audio ref={hintSound} src="/sounds/hint.mp3" preload="auto" />
         {/* Hint Button */}
-        <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={onHint}
-            disabled={disabled || hintsUsed >= maxHints}
-            className="glass-button flex items-center space-x-2 px-4 py-2 rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-wordle-text font-semibold"
-          >
-            <Lightbulb className="w-4 h-4" />
-            <span>Hint ({hintsUsed}/{maxHints})</span>
-          </button>
-        </div>
-
+        <button
+          type="button"
+          onClick={() => { onHint(); playSound('hint'); }}
+          disabled={disabled || hintsUsed >= maxHints}
+          className="glass-button flex items-center space-x-2 px-4 py-2 rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-wordle-text font-semibold focus:outline-none focus:ring-2 focus:ring-accent-pink"
+          aria-label="Get a hint"
+        >
+          <Lightbulb className="w-4 h-4" />
+          <span>Hint ({hintsUsed}/{maxHints})</span>
+        </button>
         {/* Instructions */}
         <div className="text-center text-sm text-wordle-absent">
           <p>Guess the ingredients in the recipe. Correct guesses don't count against your attempts!</p>
@@ -93,5 +119,5 @@ export const GameInput: React.FC<GameInputProps> = ({
         </div>
       </form>
     </div>
-  )
+  );
 } 

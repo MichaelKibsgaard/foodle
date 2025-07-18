@@ -64,13 +64,14 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={handleBackdropClick}>
-      <div className="modal-content max-w-2xl max-h-[80vh] overflow-hidden">
+    <div className="modal-backdrop" onClick={handleBackdropClick} role="dialog" aria-modal="true" aria-label="Cookbook Modal">
+      <div className="modal-content max-w-2xl max-h-[80vh] overflow-hidden animate-fade-in">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-wordle-text glow-animation">Cookbook</h2>
+          <h2 className="text-xl font-bold text-wordle-text glow-animation" id="cookbook-title">Cookbook</h2>
           <button
             onClick={onClose}
-            className="glass-button p-1 rounded-lg hover:scale-105 transition-all duration-300"
+            className="glass-button p-1 rounded-lg hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+            aria-label="Close cookbook"
           >
             <X className="w-5 h-5 text-wordle-text" />
           </button>
@@ -83,55 +84,52 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
             placeholder="Search recipes or ingredients..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="glass-input w-full pl-10 pr-4 py-2 rounded-lg"
+            className="glass-input w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-pink"
+            aria-label="Search recipes or ingredients"
           />
         </div>
         {/* Recipes List */}
-        <div className="overflow-y-auto max-h-[60vh] space-y-4">
-          {loading ? (
-            <div className="glass-panel text-center py-8 rounded-lg">
-              <span className="text-wordle-absent">Loading...</span>
-            </div>
-          ) : filteredRecipes.length === 0 ? (
-            <div className="glass-panel text-center py-8 rounded-lg">
-              <span className="text-wordle-absent">No completed recipes found.</span>
-            </div>
-          ) : (
-            filteredRecipes.map((recipe, index) => (
-              <div
-                key={index}
-                className="glass-panel p-4 rounded-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-wordle-text">{recipe.name}</h3>
-                  <div className="flex items-center space-x-2 text-sm text-wordle-absent">
-                    <Clock className="w-4 h-4" />
-                    <span>{recipe.cookTime || '30'} min</span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2 mb-3 text-sm text-wordle-absent">
-                  <Users className="w-4 h-4" />
-                  <span>Serves {recipe.servings || 4}</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {recipe.ingredients.slice(0, 5).map((ingredient: string, idx: number) => (
-                    <span
-                      key={idx}
-                      className="glass-panel px-2 py-1 text-xs rounded-full text-wordle-text"
-                    >
-                      {ingredient}
-                    </span>
-                  ))}
-                  {recipe.ingredients.length > 5 && (
-                    <span className="glass-panel px-2 py-1 text-xs rounded-full text-wordle-absent">
-                      +{recipe.ingredients.length - 5} more
-                    </span>
-                  )}
+        {loading ? (
+          <div className="skeleton h-32 w-full rounded-lg" aria-busy="true" aria-live="polite"></div>
+        ) : filteredRecipes.length === 0 ? (
+          <div className="glass-panel text-center py-8 rounded-lg">
+            <span className="text-wordle-absent">No completed recipes found.</span>
+          </div>
+        ) : (
+          filteredRecipes.map((recipe, index) => (
+            <div
+              key={index}
+              className="glass-panel p-4 rounded-lg hover:scale-105 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-pink"
+              tabIndex={0}
+              aria-label={`Recipe: ${recipe.name}`}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="font-semibold text-wordle-text">{recipe.name}</h3>
+                <div className="flex items-center space-x-2 text-sm text-wordle-absent">
+                  <Clock className="w-4 h-4" />
+                  <span>{recipe.cookTime || '30'} min</span>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+              <div className="flex items-center space-x-2 mb-3 text-sm text-wordle-absent">
+                <Users className="w-4 h-4" />
+                <span>Serves {recipe.servings || 4}</span>
+              </div>
+              {recipe.ingredients.slice(0, 5).map((ingredient: string, idx: number) => (
+                <span
+                  key={idx}
+                  className="glass-panel px-2 py-1 text-xs rounded-full text-wordle-text"
+                >
+                  {ingredient}
+                </span>
+              ))}
+              {recipe.ingredients.length > 5 && (
+                <span className="glass-panel px-2 py-1 text-xs rounded-full text-wordle-absent">
+                  +{recipe.ingredients.length - 5} more
+                </span>
+              )}
+            </div>
+          ))
+        )}
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-wordle-border/30 text-center">
           <div className="glass-panel inline-block px-4 py-2 rounded-lg">

@@ -3,6 +3,7 @@ export interface Recipe {
   name: string;
   emoji: string;
   ingredients: string[];
+  ingredientIcons?: { [ingredient: string]: string };
   difficulty: 'easy' | 'medium' | 'hard';
   category: string;
   description?: string;

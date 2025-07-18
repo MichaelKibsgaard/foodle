@@ -43,19 +43,20 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
   }, []);
 
   return (
-    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-content">
+    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-label="Statistics Modal">
+      <div className="modal-content max-w-md mx-auto animate-fade-in">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-wordle-text">Statistics</h2>
+          <h2 className="text-xl font-bold text-wordle-text" id="stats-title">Statistics</h2>
           <button
             onClick={onClose}
-            className="glass-button p-1 rounded-lg hover:scale-105 transition-all duration-300"
+            className="glass-button p-1 rounded-lg hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+            aria-label="Close statistics"
           >
             <X className="w-5 h-5 text-wordle-text" />
           </button>
         </div>
         {loading ? (
-          <div className="text-center text-wordle-absent">Loading...</div>
+          <div className="skeleton h-32 w-full rounded-lg" aria-busy="true" aria-live="polite"></div>
         ) : stats ? (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -67,7 +68,8 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
                 <div className="text-2xl font-bold text-accent-pink">{stats.games_won}</div>
                 <div className="text-sm text-wordle-absent">Games Won</div>
               </div>
-              <div className="glass-panel text-center p-4 rounded-lg">
+              <div className="glass-panel text-center p-4 rounded-lg flex flex-col items-center" aria-label="Current streak">
+                <span className="text-3xl" role="img" aria-label="fire">🔥</span>
                 <div className="text-2xl font-bold text-accent-pink">{stats.current_streak}</div>
                 <div className="text-sm text-wordle-absent">Current Streak</div>
               </div>
@@ -81,7 +83,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
             </div>
           </div>
         ) : (
-          <div className="text-center text-wordle-absent">No stats yet. Play a game to get started!</div>
+          <div className="text-center text-wordle-absent">No stats found.</div>
         )}
       </div>
     </div>
