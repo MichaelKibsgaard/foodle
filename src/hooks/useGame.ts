@@ -10,6 +10,10 @@ function getTodayUTCDateString() {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString().slice(0, 10)
 }
 
+function getLocalStorageKey() {
+  return `foodle_game_state_${getTodayUTCDateString()}`;
+}
+
 export const useGame = () => {
   const [gameState, setGameState] = useState<GameState>({
     currentRecipe: null,
@@ -26,6 +30,45 @@ export const useGame = () => {
   const [hints, setHints] = useState<Hint[]>([])
   const [inputValue, setInputValue] = useState('')
   const [loadingRecipe, setLoadingRecipe] = useState(true)
+
+  // Add user state to check login
+  const [user, setUser] = useState<any>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => { listener?.subscription.unsubscribe(); };
+  }, []);
+
+  // Load from localStorage if not logged in
+  useEffect(() => {
+    if (!user) {
+      const saved = localStorage.getItem(getLocalStorageKey());
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.currentRecipe && parsed.currentRecipe.ingredients) {
+            setGameState(parsed);
+            setHints(parsed.hints || []);
+            setInputValue(parsed.inputValue || '');
+          }
+        } catch {}
+      }
+    }
+  }, [user]);
+
+  // Save to localStorage on gameState, hints, or inputValue change if not logged in
+  useEffect(() => {
+    if (!user) {
+      const toSave = {
+        ...gameState,
+        hints,
+        inputValue,
+      };
+      localStorage.setItem(getLocalStorageKey(), JSON.stringify(toSave));
+    }
+  }, [gameState, hints, inputValue, user]);
 
   // Fetch today's recipe by UTC date
   const fetchTodaysRecipe = useCallback(async () => {
@@ -64,8 +107,24 @@ export const useGame = () => {
 
   // Initialize game on mount
   useEffect(() => {
-    fetchTodaysRecipe()
-  }, [fetchTodaysRecipe])
+    if (!user) {
+      const saved = localStorage.getItem(getLocalStorageKey());
+      let valid = false;
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.currentRecipe && Array.isArray(parsed.currentRecipe.ingredients) && parsed.currentRecipe.ingredients.length > 0) {
+            valid = true;
+          }
+        } catch {}
+      }
+      if (!valid) {
+        fetchTodaysRecipe();
+      }
+    } else {
+      fetchTodaysRecipe();
+    }
+  }, [fetchTodaysRecipe, user]);
 
   // Make a guess
   const makeGuess = useCallback((ingredient: string) => {

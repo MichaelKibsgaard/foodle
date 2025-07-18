@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [view, setView] = useState<'sign-in' | 'sign-up'>('sign-in');
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,7 +15,7 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     setLoading(true);
     setError(null);
     setMessage(null);
-    if (view === 'sign-in') {
+    if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
       else onClose();
@@ -29,12 +29,12 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-content max-w-sm mx-auto p-8 flex flex-col gap-4">
-        <h2 className="text-2xl font-bold text-center mb-2 text-accent-pink">
-          {view === 'sign-in' ? 'Sign In to Foodle' : 'Sign Up for Foodle'}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 text-center border border-pink-100 animate-fade-in">
+        <h2 className="text-3xl font-extrabold mb-4 text-vibrant-pink tracking-tight">
+          {mode === 'login' ? 'Log In to Foodle' : 'Sign Up for Foodle'}
         </h2>
-        <form onSubmit={handleEmailAuth} className="space-y-4">
+        <form onSubmit={mode === 'login' ? handleEmailAuth : handleEmailAuth} className="space-y-4">
           <div className="flex flex-col gap-2">
             <label htmlFor="email" className="text-sm font-medium text-wordle-text">Email</label>
             <input
@@ -60,7 +60,7 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               required
             />
           </div>
-          {view === 'sign-up' && (
+          {mode === 'signup' && (
             <div className="flex items-center gap-2 mt-2">
               <input
                 id="optin"
@@ -74,25 +74,19 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               </label>
             </div>
           )}
-          <button
-            type="submit"
-            className="btn-primary w-full py-2 font-semibold mt-2"
-            disabled={loading}
-          >
-            {loading ? 'Loading...' : view === 'sign-in' ? 'Sign In' : 'Sign Up'}
+          <button type="submit" className={`btn-primary w-full py-3 text-lg rounded-xl ${mode === 'signup' ? 'bg-yellow-400' : ''}`}>
+            {loading ? 'Loading...' : mode === 'login' ? 'Log In' : 'Sign Up'}
           </button>
         </form>
-        <div className="text-center mt-2 text-sm">
-          {view === 'sign-in' ? (
-            <span>
-              Don&apos;t have an account?{' '}
-              <button className="underline text-accent-pink" onClick={() => setView('sign-up')}>Sign Up</button>
-            </span>
+        <div className="mt-4 text-sm text-gray-500">
+          {mode === 'login' ? (
+            <>Don't have an account?{' '}
+              <button className="text-vibrant-pink font-bold" onClick={() => setMode('signup')}>Sign Up</button>
+            </>
           ) : (
-            <span>
-              Already have an account?{' '}
-              <button className="underline text-accent-pink" onClick={() => setView('sign-in')}>Sign In</button>
-            </span>
+            <>Already have an account?{' '}
+              <button className="text-vibrant-pink font-bold" onClick={() => setMode('login')}>Log In</button>
+            </>
           )}
         </div>
         {error && <div className="text-red-500 text-center mt-2">{error}</div>}

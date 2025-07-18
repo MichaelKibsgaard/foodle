@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,12 +9,43 @@ html, body, * {
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="28" font-size="28">🍔</text></svg>') 16 16, auto;
+}
+
+.arcade-banner {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.2rem;
+  background: linear-gradient(90deg, #ff00cc, #3333ff, #00ffcc, #ff00cc);
+  color: #fff;
+  text-shadow: 0 0 8px #fff, 0 0 16px #ff00cc;
+  padding: 1rem 0;
+  text-align: center;
+  letter-spacing: 0.1em;
+  border-bottom: 4px solid #fff;
+  box-shadow: 0 4px 24px 0 #0008;
+  z-index: 100;
+}
+
+.scanlines {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.07) 0px,
+    rgba(0,0,0,0.07) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  mix-blend-mode: multiply;
 }
 
 .heading, h1, h2, h3, h4, h5, h6 {
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-family: 'Press Start 2P', monospace;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 8px #fff, 0 0 16px #ff00cc;
 }
 
 .ingredient-box, .ingredient-word {
@@ -50,23 +82,34 @@ p, .modal-content, .glass-card, .glass-panel {
   body {
     @apply bg-wordle-background text-wordle-text min-h-screen;
     font-family: 'Inter', system-ui, sans-serif;
-    background: var(--bg-gradient);
+    background: linear-gradient(135deg, #1a0033 0%, #ff00cc 100%);
+    position: relative;
   }
 }
 
 @layer components {
-  .glass-card {
-    @apply bg-white border border-wordle-border rounded-2xl shadow-md;
-    background: var(--card-bg);
-    box-shadow: var(--card-shadow);
+  .glass-card, .glass-panel, .modal-content {
+    border: 4px solid #fff;
+    box-shadow: 0 0 24px 4px #ff00cc, 0 0 0 8px #3333ff inset;
+    background: rgba(30, 0, 51, 0.95);
+    color: #fff;
   }
   
-  .glass-panel {
-    @apply bg-white border border-wordle-border rounded-xl shadow-sm;
+  .glass-button, .btn-primary, .btn-outline, .btn-secondary {
+    border: 3px solid #00ffcc;
+    background: #1a0033;
+    color: #fff;
+    text-shadow: 0 0 8px #00ffcc, 0 0 16px #ff00cc;
+    box-shadow: 0 0 12px 2px #00ffcc, 0 0 0 4px #ff00cc inset;
+    font-family: 'Press Start 2P', monospace;
+    letter-spacing: 0.04em;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
   }
-  
-  .glass-button {
-    @apply bg-white border border-wordle-border hover:bg-accent-pink/10 transition-all duration-300 text-wordle-text;
+  .glass-button:hover, .btn-primary:hover, .btn-outline:hover, .btn-secondary:hover {
+    background: #ff00cc;
+    color: #fff;
+    box-shadow: 0 0 24px 4px #ff00cc, 0 0 0 8px #00ffcc inset;
+    transform: scale(1.07) rotate(-1deg);
   }
   
   .wordle-tile {
@@ -159,10 +202,13 @@ p, .modal-content, .glass-card, .glass-panel {
     animation: shimmer-gradient-move 2.5s linear infinite;
   }
   .ingredient-box {
-    @apply border-2 border-black bg-white rounded-lg flex items-center justify-center min-w-0 px-2 py-2 mb-1;
-    width: auto;
-    margin: 0 auto;
-    display: inline-flex;
+    border: 3px solid #fff;
+    background: #3333ff;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1.1rem;
+    text-shadow: 0 0 8px #fff, 0 0 16px #00ffcc;
+    box-shadow: 0 0 12px 2px #00ffcc, 0 0 0 4px #ff00cc inset;
     transition: background 0.3s, color 0.3s, box-shadow 0.2s;
   }
   .ingredient-word {

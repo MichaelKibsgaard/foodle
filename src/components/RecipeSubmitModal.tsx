@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 const COMMON_INGREDIENTS = [
   'Eggs', 'Flour', 'Sugar', 'Salt', 'Butter', 'Milk', 'Chicken', 'Beef', 'Pasta', 'Rice', 'Tomato', 'Onion', 'Garlic', 'Cheese', 'Potato', 'Carrot', 'Pepper', 'Oil', 'Bread', 'Fish', 'Beans', 'Spinach', 'Mushroom', 'Lemon', 'Honey', 'Yogurt', 'Corn', 'Apple', 'Banana', 'Other (custom)'
@@ -53,12 +54,14 @@ export const RecipeSubmitModal: React.FC<{
     }
   };
 
-  // Image upload logic (stub for Supabase Storage)
+  // Image upload logic (Supabase Storage)
   const uploadImage = async (file: File): Promise<string | null> => {
-    // TODO: Replace with actual Supabase Storage upload logic
-    // Example: await supabase.storage.from('recipe-images').upload(...)
-    // Return the public URL
-    return null;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+    const { data, error } = await supabase.storage.from('recipe-images').upload(fileName, file);
+    if (error) return null;
+    const { data: publicUrlData } = supabase.storage.from('recipe-images').getPublicUrl(fileName);
+    return publicUrlData?.publicUrl || null;
   };
 
   // Handle form submit
@@ -70,20 +73,28 @@ export const RecipeSubmitModal: React.FC<{
     if (imageFile) {
       imageUrl = await uploadImage(imageFile);
     }
-    onSubmit({
-      name,
-      cuisine,
-      difficulty,
-      ingredients,
-      description,
-      instructions,
-      servings: Number(servings),
-      image_url: imageUrl,
-      submitter_name: user?.name || submitName,
-      submitter_email: user?.email || submitEmail
-    });
+    // Insert recipe into Supabase
+    const { error } = await supabase.from('recipes').insert([
+      {
+        name,
+        category: cuisine,
+        difficulty: difficulty.toLowerCase(),
+        ingredients,
+        description,
+        instructions,
+        servings: Number(servings),
+        image_url: imageUrl,
+        submitter_name: user?.name || submitName,
+        submitter_email: user?.email || submitEmail,
+        created_at: new Date().toISOString(),
+      },
+    ]);
     setUploading(false);
-    onClose();
+    if (!error) {
+      onClose();
+    } else {
+      alert('Error submitting recipe. Please try again.');
+    }
   };
 
   // Only require name/email if not logged in
@@ -91,7 +102,7 @@ export const RecipeSubmitModal: React.FC<{
 
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-label="Submit Recipe Modal">
-      <form className="modal-content max-w-lg animate-fade-in flex flex-col gap-4" onSubmit={handleSubmit}>
+      <form className="modal-content max-w-lg animate-fade-in flex flex-col gap-4 overflow-y-auto max-h-[80vh]" onSubmit={handleSubmit}>
         <h2 className="text-2xl font-bold mb-2 text-accent-pink text-center">Submit Your Recipe</h2>
         <label className="flex flex-col gap-1">
           Recipe Name

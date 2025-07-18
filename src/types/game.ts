@@ -3,12 +3,10 @@ export interface Recipe {
   name: string;
   emoji: string;
   ingredients: string[];
-  ingredientIcons?: { [ingredient: string]: string };
   difficulty: 'easy' | 'medium' | 'hard';
   category: string;
   description?: string;
-  cookTime?: number; // in minutes
-  servings?: number; // number of people served
+  image_url?: string;
 }
 
 export interface GameState {

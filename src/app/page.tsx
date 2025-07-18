@@ -14,6 +14,7 @@ import { GuessHistory } from '@/components/GuessHistory';
 import Confetti from 'react-confetti';
 import { CookbookModal } from '@/components/CookbookModal';
 import { StatisticsModal } from '@/components/StatisticsModal';
+import { RecipeSubmitModal } from '@/components/RecipeSubmitModal';
 
 // Modern, clean modal for How To Play
 const HowToPlayModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
@@ -48,20 +49,8 @@ function formatTime(ms: number) {
 }
 
 export default function Home() {
-  // Dark mode state and toggle
-  const [darkMode, setDarkMode] = useState(false);
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  // Confetti state
+  // All hooks at the top (no hooks after any return)
   const [showConfetti, setShowConfetti] = useState(false);
-
-  // User and modal state
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showGame, setShowGame] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
@@ -76,17 +65,14 @@ export default function Home() {
     return () => { listener?.subscription.unsubscribe(); };
   }, []);
 
-  // Timer for next 8am AEST (move to top, before any returns)
   function getTimeToNext8amAEST() {
     const now = new Date();
-    // AEST is UTC+10
     const nowAEST = new Date(now.getTime() + 10 * 60 * 60 * 1000);
     let next8am = new Date(nowAEST);
     next8am.setHours(8, 0, 0, 0);
     if (nowAEST.getHours() >= 8) {
       next8am.setDate(next8am.getDate() + 1);
     }
-    // Convert back to UTC
     const next8amUTC = new Date(next8am.getTime() - 10 * 60 * 60 * 1000);
     return next8amUTC.getTime() - now.getTime();
   }
@@ -107,7 +93,6 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Game logic (must come before confetti effect)
   const {
     gameState,
     hints,
@@ -121,7 +106,6 @@ export default function Home() {
     startPracticeGame,
   } = useGame();
 
-  // Confetti effect (must be after gameState is defined)
   useEffect(() => {
     if (gameState && gameState.gameStatus === 'won') {
       setShowConfetti(true);
@@ -130,27 +114,18 @@ export default function Home() {
     }
   }, [gameState?.gameStatus]);
 
-  // State for hint pop-up and highlighted ingredient
   const [hintPopup, setHintPopup] = useState<string | null>(null);
   const [hintedIngredient, setHintedIngredient] = useState<string | null>(null);
-  // State for ad modal and extra hint
   const [showAdModal, setShowAdModal] = useState(false);
   const [extraHintUnlocked, setExtraHintUnlocked] = useState(false);
   const [maxHints, setMaxHints] = useState(gameState.maxHints);
-  // Sync maxHints with gameState unless extra hint is unlocked
   useEffect(() => {
     if (!extraHintUnlocked) setMaxHints(gameState.maxHints);
   }, [gameState.maxHints, extraHintUnlocked]);
-
-  // Track hint progress for each ingredient
   const [hintProgress, setHintProgress] = useState<{ [ingredient: string]: number }>({});
-
-  // Custom hint handler to show popup and highlight ingredient
   const handleHint = () => {
-    // Find the next unrevealed and unguessed ingredient
     const unrevealed = hints.find(h => !h.revealed && !gameState.correctIngredients.includes(h.ingredient));
     if (unrevealed) {
-      // Determine how many letters have already been hinted for this ingredient
       const progress = hintProgress[unrevealed.ingredient] || 0;
       const nextProgress = Math.min(progress + 1, unrevealed.ingredient.length);
       setHintProgress(prev => ({ ...prev, [unrevealed.ingredient]: nextProgress }));
@@ -162,8 +137,6 @@ export default function Home() {
     }
     useHint();
   };
-
-  // Handler for watching ad
   const handleWatchAd = () => {
     setShowAdModal(true);
     setTimeout(() => {
@@ -172,16 +145,10 @@ export default function Home() {
       setMaxHints(h => h + 1);
     }, 3000);
   };
-
-  // State for main box shake animation
   const [shakeBox, setShakeBox] = useState(false);
-
-  // Animation state for last guess
   const [lastGuessedIngredient, setLastGuessedIngredient] = useState<string | undefined>(undefined);
   const [lastGuessCorrect, setLastGuessCorrect] = useState<boolean | undefined>(undefined);
-  // Add audio ref for correct sound
   const correctSoundRef = React.useRef<HTMLAudioElement | null>(null);
-  // Wrap makeGuess to track last guess
   const handleGuess = (ingredient: string) => {
     if (!gameState.currentRecipe) return;
     const normalizedGuess = ingredient.toLowerCase().trim();
@@ -202,8 +169,6 @@ export default function Home() {
       setLastGuessCorrect(undefined);
     }, 500);
   };
-
-  // Timer for next game
   const [timeLeft, setTimeLeft] = useState(getTimeToNextUTCMidnight());
   useEffect(() => {
     const interval = setInterval(() => {
@@ -211,20 +176,53 @@ export default function Home() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
   const [nextRecipes, setNextRecipes] = useState<any[]>([]);
-  // Fetch next 3 unused recipes for admin
   useEffect(() => {
     if (user) {
       getNextUnusedRecipes().then(setNextRecipes);
     }
   }, [user]);
-  // Handler to mark a recipe as used for today
   const handleSetTodayRecipe = async (id: string) => {
     await markRecipeAsUsedToday(id);
     await getNextUnusedRecipes().then(setNextRecipes);
-    // Reload the game (fetch today's recipe)
     startNewGame();
+  };
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail) return;
+    setNewsletterStatus('submitting');
+    const { error } = await supabase.from('newsletter_signups').insert([
+      { email: newsletterEmail, created_at: new Date().toISOString() },
+    ]);
+    if (!error) {
+      setNewsletterStatus('success');
+      setNewsletterEmail('');
+    } else {
+      setNewsletterStatus('error');
+    }
+  };
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const handleRecipeSubmit = async (data: any) => {
+    const { name, cuisine, difficulty, ingredients, description, instructions, servings, image_url, submitter_name, submitter_email } = data;
+    const { error } = await supabase.from('recipes').insert([
+      {
+        name,
+        category: cuisine,
+        difficulty: difficulty.toLowerCase(),
+        ingredients,
+        description,
+        instructions,
+        servings,
+        image_url: image_url || null,
+        submitter_name,
+        submitter_email,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    if (!error) setSubmitSuccess(true);
   };
 
   // Landing page
@@ -267,6 +265,9 @@ export default function Home() {
     );
   }
 
+  // Newsletter signup state
+  const newsletterStatusUI = newsletterStatus === 'success' ? 'Thank you for subscribing!' : newsletterStatus === 'error' ? 'There was an error. Please try again.' : '';
+
   // Main UI
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-50 via-yellow-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col transition-colors duration-500">
@@ -292,18 +293,6 @@ export default function Home() {
         {/* Right: Book, Graph, Dark Mode, Sign In */}
         <div className="flex items-center space-x-2">
           <button
-            className={`rounded-full p-2 shadow transition-all duration-150 hover:scale-110 ${darkMode ? 'bg-gray-800 text-yellow-300' : 'bg-gray-100 text-gray-700'}`}
-            title="Toggle dark mode"
-            onClick={() => setDarkMode(dm => !dm)}
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? (
-              <span role="img" aria-label="moon" className="text-xl">🌙</span>
-            ) : (
-              <span role="img" aria-label="sun" className="text-xl">☀️</span>
-            )}
-          </button>
-          <button
             className="bg-gray-100 dark:bg-gray-800 rounded-full p-2 shadow hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-150 hover:scale-110"
             title="Cookbook"
             onClick={() => setShowCookbook(true)}
@@ -321,7 +310,6 @@ export default function Home() {
           </button>
           { !user && (
             <button className="bg-gradient-to-r from-pink-400 to-yellow-300 text-white font-bold rounded-lg px-4 py-2 flex items-center gap-1 shadow transition-all duration-150 hover:scale-105 hover:from-pink-500 hover:to-yellow-400 text-base" onClick={() => setShowAuth(true)}>
-              <span className="material-icons" style={{ fontSize: '18px' }}>login</span>
               Log In
             </button>
           )}
@@ -343,10 +331,18 @@ export default function Home() {
             {gameState.currentRecipe?.emoji && <span>{gameState.currentRecipe.emoji}</span>}
             <span>{gameState.currentRecipe?.name || 'No food of the day set!'}</span>
           </div>
-          {/* Photo Placeholder */}
-          <div className="bg-gray-200 dark:bg-gray-800 w-48 h-36 rounded-2xl mb-14 flex items-center justify-center text-gray-400 text-2xl border-2 border-gray-100 dark:border-gray-800 shadow-inner">
-            Photo
-          </div>
+          {/* Photo Placeholder or Recipe Image */}
+          {gameState.currentRecipe?.image_url ? (
+            <img
+              src={gameState.currentRecipe.image_url}
+              alt={gameState.currentRecipe.name + ' photo'}
+              className="w-48 h-36 object-cover rounded-2xl mb-14 border-2 border-gray-100 dark:border-gray-800 shadow-inner"
+            />
+          ) : (
+            <div className="bg-gray-200 dark:bg-gray-800 w-48 h-36 rounded-2xl mb-14 flex items-center justify-center text-gray-400 text-2xl border-2 border-gray-100 dark:border-gray-800 shadow-inner">
+              Photo
+            </div>
+          )}
           {/* Ingredient Boxes */}
           {gameState.currentRecipe && (
             <div className="w-full mb-6">
@@ -467,20 +463,25 @@ export default function Home() {
         {/* Top: Newsletter */}
         <div className="p-4 flex flex-col items-start">
           <div className="font-extrabold text-base text-gray-700 mb-1">Stay up to date with our latest projects:</div>
-          <span className="text-gray-500 text-xs mb-2"></span>
-          <form className="w-full flex flex-row gap-2 items-center">
+          <span className="text-gray-500 text-xs mb-2">
+            {newsletterStatusUI}
+          </span>
+          <form className="w-full flex flex-row gap-2 items-center" onSubmit={handleNewsletterSubmit}>
             <input
               type="email"
               placeholder="Your email"
               className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-gray-800 bg-white/70 focus:outline-none focus:ring-2 focus:ring-accent-pink/30 placeholder-gray-400 text-xs"
-              disabled
+              value={newsletterEmail}
+              onChange={e => setNewsletterEmail(e.target.value)}
+              required
+              disabled={newsletterStatus === 'submitting'}
             />
             <button
               type="submit"
               className="bg-gradient-to-r from-pink-400 to-yellow-300 text-white font-bold rounded-lg px-4 py-2 shadow transition-all duration-150 disabled:opacity-60 text-sm transform hover:scale-105 hover:shadow-lg active:scale-95 hover:animate-pop active:animate-pop shine-btn"
-              disabled
+              disabled={newsletterStatus === 'submitting'}
             >
-              Submit
+              {newsletterStatus === 'submitting' ? 'Submitting...' : 'Submit'}
             </button>
           </form>
         </div>
@@ -490,13 +491,21 @@ export default function Home() {
         <div className="p-4 flex flex-col items-start">
           <div className="font-extrabold text-base text-gray-700 mb-1">Submit your own recipes</div>
           <button
-            className="bg-gradient-to-r from-pink-400 to-yellow-300 text-white font-bold rounded-lg px-3 py-1 mt-1 shadow transition-all duration-150 disabled:opacity-60 text-sm transform hover:scale-105 hover:shadow-lg active:scale-95 hover:animate-pop active:animate-pop shine-btn"
-            disabled
+            className="bg-gradient-to-r from-pink-400 to-yellow-300 text-white font-bold rounded-lg px-3 py-1 mt-1 shadow transition-all duration-150 text-sm transform hover:scale-105 hover:shadow-lg active:scale-95 hover:animate-pop active:animate-pop shine-btn"
+            onClick={() => setShowRecipeModal(true)}
           >
             Submit Recipe
           </button>
         </div>
       </div>
+      {/* Recipe Submit Modal */}
+      {showRecipeModal && (
+        <RecipeSubmitModal
+          onClose={() => setShowRecipeModal(false)}
+          onSubmit={handleRecipeSubmit}
+          user={user ? { email: user.email ?? '', name: user.user_metadata?.name ?? undefined } : null}
+        />
+      )}
     </main>
   );
 } 
