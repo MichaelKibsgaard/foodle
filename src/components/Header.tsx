@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="glass-nav flex items-center justify-between w-full">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-wordle-text font-roberto glow-animation">FOODLE</h1>
+            <h1 className="foodle-logo text-2xl text-wordle-text glow-animation">FOODLE</h1>
             {user && (
               <span className="ml-2 text-lg" aria-label="User avatar">{avatar}</span>
             )}

@@ -1,5 +1,5 @@
 import React from 'react'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -7,7 +7,11 @@ export const metadata: Metadata = {
   description: 'Guess the ingredients in delicious recipes! A Wordle-inspired food guessing game.',
   keywords: ['foodle', 'wordle', 'food', 'game', 'ingredients', 'recipes', 'guessing'],
   authors: [{ name: 'Foodle Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -20,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" 
           rel="stylesheet" 
         />
+        <link href="https://db.onlinewebfonts.com/c/6c64d0b07322573d2fe791ca8b55850a?family=Synthemesc+W00+Regular" rel="stylesheet" />
       </head>
       <body className="font-sans antialiased">
         <div className="arcade-banner">🍔 FOODLE ARCADE EDITION 🍔</div>

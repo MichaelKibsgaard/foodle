@@ -48,8 +48,8 @@ export const GameResult: React.FC<GameResultProps> = ({
 
   return (
     <div className="glass-card rounded-2xl p-6">
-      <audio ref={winSound} src="/sounds/win.mp3" preload="auto" />
-      <audio ref={loseSound} src="/sounds/lose.mp3" preload="auto" />
+      <audio ref={winSound} src="/sounds/you-won.mp3" preload="auto" />
+      <audio ref={loseSound} src="/sounds/you-lost.mp3" preload="auto" />
       <div className="text-center space-y-6">
         {/* Result Header */}
         <div className="space-y-2">

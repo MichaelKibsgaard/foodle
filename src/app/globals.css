@@ -9,7 +9,7 @@ html, body, * {
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="28" font-size="28">🍔</text></svg>') 16 16, auto;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><g transform="rotate(180,16,16)"><text y="28" font-size="28">🍕</text></g></svg>') 16 16, auto;
 }
 
 .arcade-banner {
@@ -323,7 +323,7 @@ p, .modal-content, .glass-card, .glass-panel {
 }
 
 html {
-  cursor: url('/custom-cursor.cur'), auto;
+  /* Custom cursor removed - using pizza slice emoji instead */
 }
 
 button, [role="button"], input, .btn-primary, .btn-outline, .glass-button {
@@ -405,4 +405,342 @@ button:focus, [role="button"]:focus, .btn-primary:focus, .btn-outline:focus, .gl
 .btn-primary:hover, .btn-animate:hover, .shine-btn:hover, .login-btn:hover {
   transform: scale(1.04);
   box-shadow: 0 4px 20px 0 rgba(255,128,181,0.13);
+} 
+
+.ingredient-input-small {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  min-height: 1.5rem !important;
+  font-size: 0.95rem;
+} 
+
+.game-input-small {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  min-height: 2.25rem !important;
+  font-size: 1rem !important;
+}
+
+.game-input-stats {
+  min-height: 2.5rem !important;
+  height: 2.5rem !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  max-width: 576px !important;
+  width: 100% !important;
+  font-size: 1rem !important;
+}
+
+.game-input-stats-btn {
+  min-height: 2.5rem !important;
+  height: 2.5rem !important;
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  font-size: 1rem !important;
+  width: 2.5rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glass-card .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.75rem !important;
+}
+
+.foodle-logo {
+  font-family: 'Synthemesc W00 Regular', 'SynthemescW00-Regular', sans-serif !important;
+  font-weight: normal !important;
+  letter-spacing: 0.08em;
+} 
+
+@font-face {
+    font-family: "Synthemesc W00 Regular";
+    src: url("https://db.onlinewebfonts.com/t/6c64d0b07322573d2fe791ca8b55850a.eot");
+    src: url("https://db.onlinewebfonts.com/t/6c64d0b07322573d2fe791ca8b55850a.eot?#iefix") format("embedded-opentype"),
+         url("https://db.onlinewebfonts.com/t/6c64d0b07322573d2fe791ca8b55850a.woff2") format("woff2"),
+         url("https://db.onlinewebfonts.com/t/6c64d0b07322573d2fe791ca8b55850a.woff") format("woff"),
+         url("https://db.onlinewebfonts.com/t/6c64d0b07322573d2fe791ca8b55850a.ttf") format("truetype"),
+         url("https://db.onlinewebfonts.com/t/6c64d0b07322573d2fe791ca8b55850a.svg#Synthemesc W00 Regular") format("svg");
+} 
+
+/* Retro mode styling - only applied when retro mode is enabled */
+.retro-mode .arcade-banner {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.2rem;
+  background: linear-gradient(90deg, #ff00cc, #3333ff, #00ffcc, #ff00cc);
+  color: #fff;
+  text-shadow: 0 0 8px #fff, 0 0 16px #ff00cc;
+  padding: 1rem 0;
+  text-align: center;
+  letter-spacing: 0.1em;
+  border-bottom: 4px solid #fff;
+  box-shadow: 0 4px 24px 0 #0008;
+  z-index: 100;
+}
+
+.retro-mode .scanlines {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.07) 0px,
+    rgba(0,0,0,0.07) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  mix-blend-mode: multiply;
+}
+
+.retro-mode .heading, .retro-mode h1, .retro-mode h2, .retro-mode h3, .retro-mode h4, .retro-mode h5, .retro-mode h6 {
+  font-family: 'Press Start 2P', monospace;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 8px #fff, 0 0 16px #ff00cc;
+}
+
+.retro-mode .ingredient-box, .retro-mode .ingredient-word {
+  font-family: 'Fira Mono', 'Menlo', 'Consolas', monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 1.05rem;
+  text-align: center;
+}
+
+.retro-mode .btn-primary, .retro-mode .btn-animate, .retro-mode .shine-btn, .retro-mode .login-btn {
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.retro-mode .glass-button, .retro-mode .btn-primary, .retro-mode .btn-outline, .retro-mode .btn-secondary {
+  border: 3px solid #00ffcc;
+  background: #1a0033;
+  color: #fff;
+  text-shadow: 0 0 8px #00ffcc, 0 0 16px #ff00cc;
+  box-shadow: 0 0 12px 2px #00ffcc, 0 0 0 4px #ff00cc inset;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.04em;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+
+.retro-mode .glass-button:hover, .retro-mode .btn-primary:hover, .retro-mode .btn-outline:hover, .retro-mode .btn-secondary:hover {
+  background: #ff00cc;
+  color: #fff;
+  box-shadow: 0 0 24px 4px #ff00cc, 0 0 0 8px #00ffcc inset;
+  transform: scale(1.07) rotate(-1deg);
+}
+
+.retro-mode .glass-card, .retro-mode .glass-panel, .retro-mode .modal-content {
+  border: 4px solid #fff;
+  box-shadow: 0 0 24px 4px #ff00cc, 0 0 0 8px #3333ff inset;
+  background: rgba(30, 0, 51, 0.95);
+  color: #fff;
+}
+
+.retro-mode .ingredient-box {
+  border: 3px solid #fff;
+  background: #3333ff;
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.1rem;
+  text-shadow: 0 0 8px #fff, 0 0 16px #00ffcc;
+  box-shadow: 0 0 12px 2px #00ffcc, 0 0 0 4px #ff00cc inset;
+  transition: background 0.3s, color 0.3s, box-shadow 0.2s;
+}
+
+.retro-mode .ingredient-word {
+  transition: background 0.3s, color 0.3s, box-shadow 0.2s;
+}
+
+.retro-mode .glow-animation {
+  box-shadow: 0 0 8px #fff, 0 0 16px #ff00cc !important;
+  animation: glow 2s ease-in-out infinite alternate !important;
+}
+
+.retro-mode .shine-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.retro-mode .shine-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.0) 100%);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  animation: shine-move 2.2s infinite alternate;
+}
+
+.retro-mode .shine-btn:hover::before, .retro-mode .shine-btn:active::before {
+  animation: shine-move 0.7s forwards;
+}
+
+.retro-mode .btn-animate, .retro-mode .login-btn {
+  background: linear-gradient(270deg, var(--accent-pink), var(--accent-yellow), var(--accent-pink), #fffbe7);
+  background-size: 400% 400%;
+  animation: btn-roll 12s linear infinite;
+  color: #fff;
+  border: none;
+}
+
+.retro-mode .btn-primary, .retro-mode .shine-btn {
+  background: linear-gradient(270deg, var(--accent-pink), var(--accent-yellow), var(--accent-pink), #fffbe7);
+  background-size: 400% 400%;
+  animation: btn-roll 12s linear infinite;
+  color: #fff;
+  border: none;
+}
+
+.retro-mode .ingredient-box, .retro-mode .btn-primary, .retro-mode .btn-animate, .retro-mode .shine-btn, .retro-mode .login-btn {
+  transition: background 0.3s, color 0.3s, box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.07);
+}
+
+.retro-mode .ingredient-box:focus, .retro-mode .ingredient-box:active {
+  box-shadow: 0 0 0 3px var(--accent-green), 0 2px 12px 0 rgba(0,0,0,0.09);
+  outline: none;
+  z-index: 1;
+}
+
+.retro-mode .ingredient-box:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 20px 0 rgba(52,211,153,0.13);
+}
+
+.retro-mode .btn-primary:hover, .retro-mode .btn-animate:hover, .retro-mode .shine-btn:hover, .retro-mode .login-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px 0 rgba(255,128,181,0.13);
+}
+
+/* Hide retro elements by default */
+.arcade-banner, .scanlines {
+  display: none;
+}
+
+/* Show retro elements when retro mode is enabled */
+.retro-mode .arcade-banner, .retro-mode .scanlines {
+  display: block;
+} 
+
+/* Default retro button styling */
+.btn-outline, .btn-primary, .glass-button {
+  border: 3px solid #00ffcc;
+  background: #1a0033;
+  color: #fff;
+  text-shadow: 0 0 8px #00ffcc, 0 0 16px #ff00cc;
+  box-shadow: 0 0 12px 2px #00ffcc, 0 0 0 4px #ff00cc inset;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.04em;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+
+.btn-outline:hover, .btn-primary:hover, .glass-button:hover {
+  background: #ff00cc;
+  color: #fff;
+  box-shadow: 0 0 24px 4px #ff00cc, 0 0 0 8px #00ffcc inset;
+  transform: scale(1.07) rotate(-1deg);
+}
+
+/* Simple mode overrides - when NOT in retro mode */
+body:not(.retro-mode) .btn-outline,
+body:not(.retro-mode) .btn-primary,
+body:not(.retro-mode) .glass-button {
+  border: 1px solid #e5e7eb !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: #374151 !important;
+  text-shadow: none !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+  font-family: 'Inter', sans-serif !important;
+  letter-spacing: normal !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+body:not(.retro-mode) .btn-outline:hover,
+body:not(.retro-mode) .btn-primary:hover,
+body:not(.retro-mode) .glass-button:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  transform: none !important;
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Keep stats buttons simple even in retro mode */
+.retro-mode .stats-button, 
+.retro-mode .stats-container .glass-panel,
+.retro-mode .stats-container .btn-outline {
+  border: 1px solid #e5e7eb !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: #374151 !important;
+  text-shadow: none !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+  font-family: 'Inter', sans-serif !important;
+  letter-spacing: normal !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.retro-mode .stats-button:hover, 
+.retro-mode .stats-container .glass-panel:hover,
+.retro-mode .stats-container .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  transform: none !important;
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.15) !important;
+} 
+
+/* Guess History retro styling */
+.retro-mode .guess-history {
+  border: 4px solid #fff !important;
+  box-shadow: 0 0 24px 4px #ff00cc, 0 0 0 8px #3333ff inset !important;
+  background: rgba(30, 0, 51, 0.95) !important;
+  color: #fff !important;
+}
+
+/* Guess History title - normal by default, retro in retro mode */
+.guess-history-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-shadow: none;
+  color: #374151;
+}
+
+.retro-mode .guess-history-title {
+  font-family: 'Press Start 2P', monospace !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.04em !important;
+  text-shadow: 0 0 8px #fff, 0 0 16px #ff00cc !important;
+  color: #fff !important;
+}
+
+.retro-mode .guess-history-item {
+  border: 1px solid #e5e7eb !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  font-family: 'Press Start 2P', monospace !important;
+  letter-spacing: 0.04em !important;
+  transition: text-shadow 0.2s !important;
+}
+
+.retro-mode .guess-history-item:hover {
+  transform: scale(1.02) !important;
+}
+
+/* Correct/incorrect styling in retro mode - text glow only */
+.retro-mode .guess-history-item.bg-green-200 {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #00ffcc !important;
+  border-color: #e5e7eb !important;
+  text-shadow: 0 0 8px #00ffcc, 0 0 16px #00ffcc !important;
+}
+
+.retro-mode .guess-history-item.bg-red-100 {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ff00cc !important;
+  border-color: #e5e7eb !important;
+  text-shadow: 0 0 8px #ff00cc, 0 0 16px #ff00cc !important;
 } 

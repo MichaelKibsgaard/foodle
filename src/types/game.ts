@@ -7,6 +7,7 @@ export interface Recipe {
   category: string;
   description?: string;
   image_url?: string;
+  recipe_image?: string;
 }
 
 export interface GameState {

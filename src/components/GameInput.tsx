@@ -68,7 +68,7 @@ export const GameInput: React.FC<GameInputProps> = ({
             disabled={disabled}
             placeholder="Enter an ingredient..."
             className={`
-              glass-input w-full px-4 py-3 text-lg font-semibold text-center
+              glass-input game-input-stats w-full max-w-xl px-4 text-lg font-semibold text-center
               disabled:opacity-50 disabled:cursor-not-allowed
               ${isShaking ? 'shake-animation' : ''}
               text-wordle-text placeholder-wordle-text/60
@@ -82,7 +82,7 @@ export const GameInput: React.FC<GameInputProps> = ({
             <button
               type="submit"
               disabled={disabled || !value.trim()}
-              className="glass-button p-2 rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+              className="glass-button game-input-stats-btn rounded-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
               aria-label="Submit guess"
             >
               <Send className="w-4 h-4 text-wordle-text" />
@@ -98,8 +98,8 @@ export const GameInput: React.FC<GameInputProps> = ({
           </div>
         </div>
         {/* Sound elements */}
-        <audio ref={correctSound} src="/sounds/correct.mp3" preload="auto" />
-        <audio ref={incorrectSound} src="/sounds/incorrect.mp3" preload="auto" />
+        <audio ref={correctSound} src="/sounds/correct-answer.mp3" preload="auto" />
+        <audio ref={incorrectSound} src="/sounds/incorrect-answer.mp3" preload="auto" />
         <audio ref={hintSound} src="/sounds/hint.mp3" preload="auto" />
         {/* Hint Button */}
         <button

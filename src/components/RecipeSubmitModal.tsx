@@ -125,12 +125,12 @@ export const RecipeSubmitModal: React.FC<{
         <label className="flex flex-col gap-1">
           Ingredients
           <div className="flex gap-2">
-            <select className="glass-input flex-1" value={ingredientInput} onChange={e => handleIngredientChange(e.target.value)}>
+            <select className="glass-input flex-1 ingredient-input-small" value={ingredientInput} onChange={e => handleIngredientChange(e.target.value)}>
               <option value="">Select ingredient...</option>
               {COMMON_INGREDIENTS.map(i => <option key={i} value={i}>{i}</option>)}
             </select>
             {showCustom && (
-              <input className="glass-input flex-1" placeholder="Custom ingredient" value={customIngredient} onChange={e => setCustomIngredient(e.target.value)} />
+              <input className="glass-input flex-1 ingredient-input-small" placeholder="Custom ingredient" value={customIngredient} onChange={e => setCustomIngredient(e.target.value)} />
             )}
             <button type="button" className="btn-primary px-3" onClick={addIngredient}>Add</button>
           </div>

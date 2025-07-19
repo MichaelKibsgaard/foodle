@@ -57,6 +57,17 @@ export default function Home() {
   const [showCookbook, setShowCookbook] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [retroMode, setRetroMode] = useState(false);
+  
+  // Apply retro mode to body
+  useEffect(() => {
+    if (retroMode) {
+      document.body.classList.add('retro-mode');
+    } else {
+      document.body.classList.remove('retro-mode');
+    }
+  }, [retroMode]);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -109,10 +120,24 @@ export default function Home() {
   useEffect(() => {
     if (gameState && gameState.gameStatus === 'won') {
       setShowConfetti(true);
+      console.log('Playing win sound');
+      winSoundRef.current?.play().catch(e => console.error('Error playing win sound:', e));
       const timeout = setTimeout(() => setShowConfetti(false), 3500);
       return () => clearTimeout(timeout);
     }
+    if (gameState && gameState.gameStatus === 'lost') {
+      console.log('Playing lose sound');
+      loseSoundRef.current?.play().catch(e => console.error('Error playing lose sound:', e));
+    }
   }, [gameState?.gameStatus]);
+
+  // Debug: Log recipe data
+  useEffect(() => {
+    if (gameState?.currentRecipe) {
+      console.log('Current recipe data:', gameState.currentRecipe);
+      console.log('Recipe image URL:', gameState.currentRecipe.recipe_image);
+    }
+  }, [gameState?.currentRecipe]);
 
   const [hintPopup, setHintPopup] = useState<string | null>(null);
   const [hintedIngredient, setHintedIngredient] = useState<string | null>(null);
@@ -149,17 +174,31 @@ export default function Home() {
   const [lastGuessedIngredient, setLastGuessedIngredient] = useState<string | undefined>(undefined);
   const [lastGuessCorrect, setLastGuessCorrect] = useState<boolean | undefined>(undefined);
   const correctSoundRef = React.useRef<HTMLAudioElement | null>(null);
+  const incorrectSoundRef = React.useRef<HTMLAudioElement | null>(null);
+  const winSoundRef = React.useRef<HTMLAudioElement | null>(null);
+  const loseSoundRef = React.useRef<HTMLAudioElement | null>(null);
   const handleGuess = (ingredient: string) => {
     if (!gameState.currentRecipe) return;
     const normalizedGuess = ingredient.toLowerCase().trim();
+    
+    // Easter egg: enable retro mode when "retro" is typed
+    if (normalizedGuess === 'retro') {
+      setRetroMode(true);
+      setInputValue('');
+      return;
+    }
+    
     const normalizedIngredients = gameState.currentRecipe.ingredients.map(i => i.toLowerCase());
     setLastGuessedIngredient(normalizedGuess);
     const isCorrect = normalizedIngredients.includes(normalizedGuess);
     setLastGuessCorrect(isCorrect);
     if (isCorrect) {
-      correctSoundRef.current?.play();
+      console.log('Playing correct sound');
+      correctSoundRef.current?.play().catch(e => console.error('Error playing correct sound:', e));
     }
     if (!isCorrect) {
+      console.log('Playing incorrect sound');
+      incorrectSoundRef.current?.play().catch(e => console.error('Error playing incorrect sound:', e));
       setShakeBox(true);
       setTimeout(() => setShakeBox(false), 400);
     }
@@ -271,6 +310,12 @@ export default function Home() {
   // Main UI
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-50 via-yellow-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col transition-colors duration-500">
+      {/* Audio elements */}
+      <audio ref={correctSoundRef} src="/sounds/correct-answer.mp3" preload="auto" />
+      <audio ref={incorrectSoundRef} src="/sounds/incorrect-answer.mp3" preload="auto" />
+      <audio ref={winSoundRef} src="/sounds/you-won.mp3" preload="auto" />
+      <audio ref={loseSoundRef} src="/sounds/you-lost.mp3" preload="auto" />
+      
       {/* Confetti overlay */}
       {showConfetti && (
         <Confetti
@@ -317,7 +362,7 @@ export default function Home() {
       </div>
 
       {/* Main Centered Box */}
-      <div className="flex flex-col items-center w-full max-w-5xl mx-auto mt-8">
+      <div className="flex flex-col items-center w-full max-w-5xl mx-auto mt-8 mb-8">
         {/* Game Over Message */}
         {['won', 'lost'].includes(gameState.gameStatus) && (
           <div className={`mb-4 text-2xl font-bold ${gameState.gameStatus === 'won' ? 'text-green-600' : 'text-red-500'}`}>
@@ -332,17 +377,21 @@ export default function Home() {
             <span>{gameState.currentRecipe?.name || 'No food of the day set!'}</span>
           </div>
           {/* Photo Placeholder or Recipe Image */}
-          {gameState.currentRecipe?.image_url ? (
+          {gameState.currentRecipe?.recipe_image ? (
             <img
-              src={gameState.currentRecipe.image_url}
+              src={gameState.currentRecipe.recipe_image}
               alt={gameState.currentRecipe.name + ' photo'}
-              className="w-48 h-36 object-cover rounded-2xl mb-14 border-2 border-gray-100 dark:border-gray-800 shadow-inner"
+              className="w-48 h-36 object-cover rounded-2xl mb-1 border-2 border-gray-100 dark:border-gray-800 shadow-inner"
             />
           ) : (
-            <div className="bg-gray-200 dark:bg-gray-800 w-48 h-36 rounded-2xl mb-14 flex items-center justify-center text-gray-400 text-2xl border-2 border-gray-100 dark:border-gray-800 shadow-inner">
+            <div className="bg-gray-200 dark:bg-gray-800 w-48 h-36 rounded-2xl mb-1 flex items-center justify-center text-gray-400 text-2xl border-2 border-gray-100 dark:border-gray-800 shadow-inner">
               Photo
             </div>
           )}
+          <div className="flex justify-center items-center gap-2 text-gray-400 text-xs mb-4">
+            <span>[USERNAME]</span>
+            <span>[LINK]</span>
+          </div>
           {/* Ingredient Boxes */}
           {gameState.currentRecipe && (
             <div className="w-full mb-6">
@@ -364,7 +413,7 @@ export default function Home() {
         </div>
 
         {/* Stats Bar with Hint Button */}
-        <div className="flex flex-row justify-between items-center gap-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md rounded-xl px-4 py-2 mt-4 shadow border border-pink-100/30 mx-auto w-full max-w-xl animate-fade-in">
+        <div className="stats-container flex flex-row justify-between items-center gap-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md rounded-xl px-4 py-2 mt-4 shadow border border-pink-100/30 mx-auto w-full max-w-xl animate-fade-in">
           <div className="flex flex-col items-center flex-1 min-w-0">
             <span className="text-xs text-gray-500 dark:text-gray-400">Guesses Left</span>
             <span className="font-bold text-base text-gray-800 dark:text-white">{gameState.maxAttempts - gameState.attempts}</span>
@@ -380,7 +429,7 @@ export default function Home() {
           <div className="flex flex-col items-center flex-1 min-w-0">
             <button
               type="button"
-              className="btn-outline px-3 py-1 rounded-xl transition-all duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-pink text-sm w-full"
+              className="stats-button btn-outline px-3 py-1 rounded-xl transition-all duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-pink text-sm w-full"
               onClick={typeof handleHint === 'function' ? handleHint : undefined}
               aria-label="Get a hint"
               disabled={gameState.hintsUsed >= maxHints && !extraHintUnlocked}
@@ -389,27 +438,27 @@ export default function Home() {
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Input Area */}
-      <div className="flex justify-center mt-8">
-        <form onSubmit={e => { e.preventDefault(); if (inputValue.trim()) handleGuess(inputValue); }} className="flex items-center space-x-4 max-w-xl mx-auto w-full animate-fade-in">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={e => setInputValue(e.target.value)}
-            className="flex-1 rounded-xl border border-gray-300 dark:border-gray-700 px-6 py-4 text-gray-800 dark:text-white bg-white/80 dark:bg-gray-900/80 focus:outline-none focus:ring-4 focus:ring-accent-pink/30 transition-all duration-150 shadow text-lg"
-            placeholder="Type an ingredient..."
-            disabled={gameState.gameStatus !== 'playing'}
-          />
-          <button
-            type="submit"
-            className="btn-primary px-10 py-4 rounded-xl text-lg transition-all duration-150 hover:scale-105"
-            disabled={gameState.gameStatus !== 'playing'}
-          >
-            Submit
-          </button>
-        </form>
+        {/* Input Area */}
+        <div className="flex justify-center mt-4">
+          <form onSubmit={e => { e.preventDefault(); if (inputValue.trim()) handleGuess(inputValue); }} className="flex items-center space-x-4 max-w-xl mx-auto w-full animate-fade-in">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              className="flex-1 rounded-xl border border-gray-300 dark:border-gray-700 px-6 py-4 text-gray-800 dark:text-white bg-white/80 dark:bg-gray-900/80 focus:outline-none focus:ring-4 focus:ring-accent-pink/30 transition-all duration-150 shadow text-lg"
+              placeholder="Type an ingredient..."
+              disabled={gameState.gameStatus !== 'playing'}
+            />
+            <button
+              type="submit"
+              className="btn-primary px-10 py-4 rounded-xl text-lg transition-all duration-150 hover:scale-105"
+              disabled={gameState.gameStatus !== 'playing'}
+            >
+              Submit
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Admin: Next 3 Recipes */}
@@ -506,6 +555,20 @@ export default function Home() {
           user={user ? { email: user.email ?? '', name: user.user_metadata?.name ?? undefined } : null}
         />
       )}
+
+      {/* Audio Elements for Sound Effects */}
+      <audio ref={correctSoundRef} preload="auto">
+        <source src="/sounds/correct-answer.mp3" type="audio/mpeg" />
+      </audio>
+      <audio ref={incorrectSoundRef} preload="auto">
+        <source src="/sounds/incorrect-answer.mp3" type="audio/mpeg" />
+      </audio>
+      <audio ref={winSoundRef} preload="auto">
+        <source src="/sounds/you-won.mp3" type="audio/mpeg" />
+      </audio>
+      <audio ref={loseSoundRef} preload="auto">
+        <source src="/sounds/you-lost.mp3" type="audio/mpeg" />
+      </audio>
     </main>
   );
 } 
