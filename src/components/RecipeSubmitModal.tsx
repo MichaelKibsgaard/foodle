@@ -30,6 +30,8 @@ export const RecipeSubmitModal: React.FC<{
   const [submitName, setSubmitName] = useState('');
   const [submitEmail, setSubmitEmail] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [fullIngredients, setFullIngredients] = useState('');
+  const [instagramLink, setInstagramLink] = useState('');
 
   // Ingredient add/remove logic
   const addIngredient = () => {
@@ -73,8 +75,15 @@ export const RecipeSubmitModal: React.FC<{
     if (imageFile) {
       imageUrl = await uploadImage(imageFile);
     }
-    // Insert recipe into Supabase
-    const { error } = await supabase.from('recipes').insert([
+    // Parse full ingredient list as array (one per line, trimmed, non-empty)
+    const ingredientsLongArr = fullIngredients
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    // Use logged-in email if not provided
+    const finalEmail = submitEmail || user?.email || '';
+    // Insert recipe into user_recipes table
+    const { error } = await supabase.from('user_recipes').insert([
       {
         name,
         category: cuisine,
@@ -85,7 +94,9 @@ export const RecipeSubmitModal: React.FC<{
         servings: Number(servings),
         image_url: imageUrl,
         submitter_name: user?.name || submitName,
-        submitter_email: user?.email || submitEmail,
+        submitter_email: finalEmail,
+        ingredients_long: ingredientsLongArr,
+        instagram_link: instagramLink,
         created_at: new Date().toISOString(),
       },
     ]);
@@ -103,27 +114,27 @@ export const RecipeSubmitModal: React.FC<{
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={e => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-label="Submit Recipe Modal">
       <form className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4 border border-gray-200 dark:border-gray-800 animate-fade-in flex flex-col gap-4 overflow-y-auto max-h-[80vh]" onSubmit={handleSubmit}>
-        <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white text-center">Submit Your Recipe</h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white text-center" style={{ fontFamily: 'Inter, sans-serif', textShadow: 'none' }}>Submit Your Recipe</h2>
         <label className="flex flex-col gap-1">
           Recipe Name
-          <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={name} onChange={e => setName(e.target.value)} required />
+          <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={name} onChange={e => setName(e.target.value)} required />
         </label>
         <label className="flex flex-col gap-1">
           Cuisine
-          <select className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={cuisine} onChange={e => setCuisine(e.target.value)} required>
+          <select className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={cuisine} onChange={e => setCuisine(e.target.value)} required>
             <option value="">Select...</option>
             {CUISINES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
         <label className="flex flex-col gap-1">
           Difficulty
-          <select className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={difficulty} onChange={e => setDifficulty(e.target.value)} required>
+          <select className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={difficulty} onChange={e => setDifficulty(e.target.value)} required>
             <option value="">Select...</option>
             {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          Ingredients
+          Game Ingredients
           <div className="flex gap-2">
             <select className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" value={ingredientInput} onChange={e => handleIngredientChange(e.target.value)}>
               <option value="">Select ingredient...</option>
@@ -132,7 +143,7 @@ export const RecipeSubmitModal: React.FC<{
             {showCustom && (
               <input className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" placeholder="Custom ingredient" value={customIngredient} onChange={e => setCustomIngredient(e.target.value)} />
             )}
-            <button type="button" className="bg-accent-pink text-white rounded-lg px-3 py-2 font-semibold hover:bg-pink-500 transition" onClick={addIngredient}>Add</button>
+            <button type="button" className="bg-green-500 text-white rounded-lg px-3 py-2 font-semibold hover:bg-green-600 transition" onClick={addIngredient}>Add</button>
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
             {ingredients.map(ing => (
@@ -145,15 +156,23 @@ export const RecipeSubmitModal: React.FC<{
         </label>
         <label className="flex flex-col gap-1">
           Description
-          <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={description} onChange={e => setDescription(e.target.value)} required rows={2} />
+          <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={description} onChange={e => setDescription(e.target.value)} required rows={2} />
         </label>
         <label className="flex flex-col gap-1">
-          Recipe / Instructions
-          <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={instructions} onChange={e => setInstructions(e.target.value)} required rows={3} />
+          Full Ingredient List
+          <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="One ingredient per line" rows={3} value={fullIngredients} onChange={e => setFullIngredients(e.target.value)} />
+        </label>
+        <label className="flex flex-col gap-1">
+          Instructions
+          <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={instructions} onChange={e => setInstructions(e.target.value)} required rows={3} />
         </label>
         <label className="flex flex-col gap-1">
           Servings
           <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="number" min="1" value={servings} onChange={e => setServings(e.target.value)} required />
+        </label>
+        <label className="flex flex-col gap-1">
+          Instagram Link (optional)
+          <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="url" placeholder="https://instagram.com/yourprofile" value={instagramLink} onChange={e => setInstagramLink(e.target.value)} />
         </label>
         <label className="flex flex-col gap-1">
           Image (optional)
@@ -162,11 +181,11 @@ export const RecipeSubmitModal: React.FC<{
         {requireNameEmail && (
           <>
             <label className="flex flex-col gap-1">
-              Your Name
+              Name
               <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" value={submitName} onChange={e => setSubmitName(e.target.value)} required />
             </label>
             <label className="flex flex-col gap-1">
-              Your Email
+              Email
               <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="email" value={submitEmail} onChange={e => setSubmitEmail(e.target.value)} required />
             </label>
           </>

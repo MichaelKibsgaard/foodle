@@ -81,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
       if (error) {
         console.error('Sign out error:', error.message);
       } else {
-        setUser(null);
+    setUser(null);
       }
     } catch (err) {
       console.error('Sign out exception:', err);
@@ -122,19 +122,19 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header className="w-full max-w-4xl mx-auto px-4 py-4 flex items-center justify-between bg-white/90 dark:bg-gray-900/90 shadow border border-gray-200 dark:border-gray-800 rounded-b-2xl relative">
-        {/* Logo */}
-        <div className="flex items-center gap-2">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
           <span className="text-xl font-extrabold tracking-widest text-gray-800 dark:text-white">FOODLE</span>
           {avatar && (
-            <span className="ml-2 text-lg" aria-label="User avatar">{avatar}</span>
-          )}
-        </div>
+              <span className="ml-2 text-lg" aria-label="User avatar">{avatar}</span>
+            )}
+          </div>
         {/* Centered Timer (absolutely centered for the whole header) */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
           <div className="bg-gray-100/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-200 rounded-2xl px-6 py-1 font-mono text-base font-semibold shadow transition-all">
             Next recipe in {formatAestTime(aestTimeLeft)}
-          </div>
-        </div>
+              </div>
+            </div>
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
           <div
@@ -220,7 +220,7 @@ export const Header: React.FC<HeaderProps> = ({
                 Sign In
               </button>
             )}
-          </div>
+        </div>
       </header>
       {/* Modals */}
       {showStats && (

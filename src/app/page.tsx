@@ -19,15 +19,15 @@ import { RecipeSubmitModal } from '@/components/RecipeSubmitModal';
 // Modern, clean modal for How To Play
 const HowToPlayModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={e => e.target === e.currentTarget && onClose()}>
-    <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 max-w-lg w-full mx-4 text-center border border-pink-100 animate-fade-in">
-      <h2 className="text-3xl font-extrabold mb-4 text-vibrant-pink tracking-tight">How to Play Foodle</h2>
+    <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 max-w-lg w-full mx-4 text-center border border-gray-200 dark:border-gray-800 animate-fade-in">
+      <h2 className="text-3xl font-extrabold mb-4 text-green-600 dark:text-green-400 tracking-tight" style={{ fontFamily: 'Inter, sans-serif', textShadow: 'none' }}>How to Play Foodle</h2>
       <ol className="text-lg text-gray-700 dark:text-gray-200 space-y-3 mb-6 text-left font-medium">
-        <li><b>1.</b> Guess the ingredients in the recipe. Each ingredient is hidden as dashes (e.g. <span className='inline-block font-mono'>_ _ _ _</span>).</li>
-        <li><b>2.</b> Type your guess and press Enter. Correct guesses fill in the word and turn <span className='text-vibrant-pink font-bold'>pink</span>!</li>
+        <li><b>1.</b> Guess the ingredients in the recipe.</li>
+        <li><b>2.</b> Type your guess and press Enter. Correct guesses fill in the word and turn <span className='text-green-600 dark:text-green-400 font-bold'>green</span>!</li>
         <li><b>3.</b> You have a limited number of attempts. Only incorrect guesses count against you.</li>
         <li><b>4.</b> Use hints if you get stuck!</li>
       </ol>
-      <button className="btn-primary w-full py-3 text-lg rounded-xl" onClick={onClose}>Start Playing</button>
+      <button className="w-full py-3 text-lg rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold transition" style={{ boxShadow: '0 2px 8px rgba(16, 185, 129, 0.08)' }} onClick={onClose}>Start Playing</button>
     </div>
   </div>
 );
@@ -51,7 +51,13 @@ function formatTime(ms: number) {
 export default function Home() {
   // All hooks at the top (no hooks after any return)
   const [showConfetti, setShowConfetti] = useState(false);
-  const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(() => {
+    // Show instructions on first load, but only once per session
+    if (typeof window !== 'undefined') {
+      return !window.sessionStorage.getItem('foodle-how-to-play-shown');
+    }
+    return true;
+  });
   const [showGame, setShowGame] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showCookbook, setShowCookbook] = useState(false);
@@ -264,6 +270,17 @@ export default function Home() {
     if (!error) setSubmitSuccess(true);
   };
 
+  const [showRecipePopup, setShowRecipePopup] = useState(false);
+
+  // Show the popup when the user wins
+  useEffect(() => {
+    if (gameState && gameState.gameStatus === 'won') {
+      setShowRecipePopup(true);
+      const timeout = setTimeout(() => setShowRecipePopup(false), 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [gameState?.gameStatus]);
+
   // Landing page
   if (!gameState) { // Changed from showGame to gameState
     return (
@@ -307,9 +324,35 @@ export default function Home() {
   // Newsletter signup state
   const newsletterStatusUI = newsletterStatus === 'success' ? 'Thank you for subscribing!' : newsletterStatus === 'error' ? 'There was an error. Please try again.' : '';
 
+  // When instructions modal is closed, mark as shown for this session
+  const handleCloseHowToPlay = () => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('foodle-how-to-play-shown', '1');
+    }
+    setShowHowToPlay(false);
+  };
+
   // Main UI
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-50 via-yellow-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col transition-colors duration-500">
+      {/* Top-right pop-up for full recipe */}
+      {showRecipePopup && (
+        <div className="fixed top-6 right-6 z-50 px-0 py-0 animate-fade-in">
+          <div className="relative bg-white dark:bg-gray-900 border-2 border-green-300 dark:border-green-600 rounded-2xl shadow-xl px-4 py-2 flex flex-col items-center min-w-[160px]"
+            style={{ boxShadow: '0 4px 32px 0 rgba(34,197,94,0.10)', animation: 'pulseGlow 1.5s infinite alternate' }}>
+            <span className="text-gray-800 dark:text-gray-100 font-semibold text-sm mb-1 text-center">Scroll to the bottom for the full recipe</span>
+            <span className="block mt-0.5 animate-bounce text-green-500 dark:text-green-400 text-2xl" style={{ filter: 'drop-shadow(0 2px 6px #bbf7d0)' }}>&#x25BC;</span>
+          </div>
+          <style>{`
+            @keyframes pulseGlow {
+              0% { box-shadow: 0 4px 32px 0 rgba(34,197,94,0.10), 0 0 0 0 #bbf7d0; border-color: #bbf7d0; }
+              100% { box-shadow: 0 4px 32px 0 rgba(34,197,94,0.18), 0 0 12px 4px #bbf7d0; border-color: #4ade80; }
+            }
+          `}</style>
+        </div>
+      )}
+      {/* Show instructions pop-up at the start */}
+      {showHowToPlay && <HowToPlayModal onClose={handleCloseHowToPlay} />}
       {/* Audio elements */}
       <audio ref={correctSoundRef} src="/sounds/correct-answer.mp3" preload="auto" />
       <audio ref={incorrectSoundRef} src="/sounds/incorrect-answer.mp3" preload="auto" />
@@ -344,7 +387,7 @@ export default function Home() {
         {/* Main Game Box */}
         <div className={`bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl p-6 w-full max-w-xl flex flex-col items-center border border-pink-100/60 backdrop-blur-md transition-all duration-150 ${shakeBox ? 'animate-shake' : ''} animate-fade-in`}>
           {/* Food of the day name or fallback */}
-          <div className="flex items-center justify-center gap-2 text-3xl font-extrabold text-gray-900 dark:text-white mb-8 mt-6 text-center tracking-tight drop-shadow-md">
+          <div className="flex items-center justify-center gap-2 text-3xl font-extrabold text-gray-900 dark:text-white mb-4 mt-2 text-center tracking-tight drop-shadow-md">
             {gameState.currentRecipe?.emoji && <span>{gameState.currentRecipe.emoji}</span>}
             <span>{gameState.currentRecipe?.name || 'No food of the day set!'}</span>
           </div>
@@ -366,10 +409,40 @@ export default function Home() {
               Photo
             </div>
           )}
-          <div className="flex justify-center items-center gap-2 text-gray-400 text-xs mb-4">
-            <span>[USERNAME]</span>
-            <span>[LINK]</span>
-          </div>
+          {/* Username and Instagram link row */}
+          {gameState.currentRecipe && (
+            <div className="flex justify-center items-center gap-2 text-xs mb-2 mt-2">
+              {/* Username */}
+              {gameState.currentRecipe.username && gameState.currentRecipe.username.trim() ? (
+                <span className="flex items-center font-semibold text-green-700 dark:text-green-400">
+                  <svg className="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm0 2c-3.314 0-6 1.686-6 3.75V18h12v-2.25C16 13.686 13.314 12 10 12z" /></svg>
+                  {gameState.currentRecipe.username}
+                </span>
+              ) : (
+                <span className="flex items-center text-gray-400">
+                  <svg className="w-4 h-4 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm0 2c-3.314 0-6 1.686-6 3.75V18h12v-2.25C16 13.686 13.314 12 10 12z" /></svg>
+                  No Username
+                </span>
+              )}
+              {/* Instagram Link */}
+              {gameState.currentRecipe.userlink && gameState.currentRecipe.userlink.trim() ? (
+                <a
+                  href={gameState.currentRecipe.userlink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center font-semibold text-blue-600 dark:text-blue-400 hover:underline ml-2"
+                >
+                  <svg className="w-4 h-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M7.75 2A5.75 5.75 0 002 7.75v8.5A5.75 5.75 0 007.75 22h8.5A5.75 5.75 0 0022 16.25v-8.5A5.75 5.75 0 0016.25 2h-8.5zm0 1.5h8.5A4.25 4.25 0 0120.5 7.75v8.5a4.25 4.25 0 01-4.25 4.25h-8.5A4.25 4.25 0 013.5 16.25v-8.5A4.25 4.25 0 017.75 3.5zm4.25 2.75a4.25 4.25 0 100 8.5 4.25 4.25 0 000-8.5zm0 1.5a2.75 2.75 0 110 5.5 2.75 2.75 0 010-5.5zm5.25 1.25a1 1 0 110 2 1 1 0 010-2z" /></svg>
+                  [Instagram]
+                </a>
+              ) : (
+                <span className="flex items-center text-gray-400 ml-2">
+                  <svg className="w-4 h-4 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M7.75 2A5.75 5.75 0 002 7.75v8.5A5.75 5.75 0 007.75 22h8.5A5.75 5.75 0 0022 16.25v-8.5A5.75 5.75 0 0016.25 2h-8.5zm0 1.5h8.5A4.25 4.25 0 0120.5 7.75v8.5a4.25 4.25 0 01-4.25 4.25h-8.5A4.25 4.25 0 013.5 16.25v-8.5A4.25 4.25 0 017.75 3.5zm4.25 2.75a4.25 4.25 0 100 8.5 4.25 4.25 0 000-8.5zm0 1.5a2.75 2.75 0 110 5.5 2.75 2.75 0 010-5.5zm5.25 1.25a1 1 0 110 2 1 1 0 010-2z" /></svg>
+                  [No Instagram]
+                </span>
+              )}
+            </div>
+          )}
           {/* Ingredient Boxes */}
           {gameState.currentRecipe && (
             <div className="w-full mb-6">
@@ -438,6 +511,92 @@ export default function Home() {
           </form>
         </div>
       </div>
+
+      {/* Place recipe box as a normal section below the main game box */}
+      {['won', 'lost'].includes(gameState.gameStatus) && gameState.currentRecipe && (
+        <div className="w-full flex justify-center mt-8 mb-8">
+          <div className="bg-white/95 dark:bg-gray-900/95 border-t-4 border-green-300 dark:border-green-600 shadow-2xl rounded-3xl max-w-2xl w-full mx-4 px-6 py-6 flex flex-col items-center animate-fade-in">
+            <div className="flex items-center gap-3 mb-2">
+              {gameState.currentRecipe.emoji && <span className="text-3xl">{gameState.currentRecipe.emoji}</span>}
+              <span className="text-xl font-bold text-gray-800 dark:text-white">{gameState.currentRecipe.name}</span>
+            </div>
+            {/* Username and link row */}
+            <div className="flex justify-center items-center gap-2 text-xs mb-2">
+              {/* Username */}
+              {gameState.currentRecipe.username && gameState.currentRecipe.username.trim() ? (
+                <span className="flex items-center font-semibold text-green-700 dark:text-green-400">
+                  <svg className="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm0 2c-3.314 0-6 1.686-6 3.75V18h12v-2.25C16 13.686 13.314 12 10 12z" /></svg>
+                  {gameState.currentRecipe.username}
+                </span>
+              ) : (
+                <span className="flex items-center text-gray-400">
+                  <svg className="w-4 h-4 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm0 2c-3.314 0-6 1.686-6 3.75V18h12v-2.25C16 13.686 13.314 12 10 12z" /></svg>
+                  No Username
+                </span>
+              )}
+              {/* Instagram Link */}
+              {gameState.currentRecipe.userlink && gameState.currentRecipe.userlink.trim() ? (
+                <a
+                  href={gameState.currentRecipe.userlink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center font-semibold text-blue-600 dark:text-blue-400 hover:underline ml-2"
+                >
+                  <svg className="w-4 h-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M7.75 2A5.75 5.75 0 002 7.75v8.5A5.75 5.75 0 007.75 22h8.5A5.75 5.75 0 0022 16.25v-8.5A5.75 5.75 0 0016.25 2h-8.5zm0 1.5h8.5A4.25 4.25 0 0120.5 7.75v8.5a4.25 4.25 0 01-4.25 4.25h-8.5A4.25 4.25 0 013.5 16.25v-8.5A4.25 4.25 0 017.75 3.5zm4.25 2.75a4.25 4.25 0 100 8.5 4.25 4.25 0 000-8.5zm0 1.5a2.75 2.75 0 110 5.5 2.75 2.75 0 010-5.5zm5.25 1.25a1 1 0 110 2 1 1 0 010-2z" /></svg>
+                  [Instagram]
+                </a>
+              ) : (
+                <span className="flex items-center text-gray-400 ml-2">
+                  <svg className="w-4 h-4 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M7.75 2A5.75 5.75 0 002 7.75v8.5A5.75 5.75 0 007.75 22h8.5A5.75 5.75 0 0022 16.25v-8.5A5.75 5.75 0 0016.25 2h-8.5zm0 1.5h8.5A4.25 4.25 0 0120.5 7.75v8.5a4.25 4.25 0 01-4.25 4.25h-8.5A4.25 4.25 0 013.5 16.25v-8.5A4.25 4.25 0 017.75 3.5zm4.25 2.75a4.25 4.25 0 100 8.5 4.25 4.25 0 000-8.5zm0 1.5a2.75 2.75 0 110 5.5 2.75 2.75 0 010-5.5zm5.25 1.25a1 1 0 110 2 1 1 0 010-2z" /></svg>
+                  [No Instagram]
+                </span>
+              )}
+            </div>
+            {/* Serves, Time, Cuisine, Difficulty row */}
+            <div className="mb-2 text-gray-500 text-sm flex items-center gap-3">
+              <span className="flex items-center gap-1"><svg className="inline w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6 5.87v-2a4 4 0 00-3-3.87m6 5.87v-2a4 4 0 00-3-3.87" /></svg>Serves {gameState.currentRecipe.servings || 4}</span>
+              <span className="flex items-center gap-1"><svg className="inline w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>{gameState.currentRecipe.cookTime || '30'} min</span>
+              <span className="ml-4 flex items-center gap-1"><span role="img" aria-label="Cuisine">🍽️</span>{gameState.currentRecipe.category ? gameState.currentRecipe.category.charAt(0).toUpperCase() + gameState.currentRecipe.category.slice(1) : 'Unknown'}</span>
+              <span className="ml-4 flex items-center gap-1"><span role="img" aria-label="Difficulty">🎯</span>{gameState.currentRecipe.difficulty ? gameState.currentRecipe.difficulty.charAt(0).toUpperCase() + gameState.currentRecipe.difficulty.slice(1) : 'Unknown'}</span>
+            </div>
+            {gameState.currentRecipe.photo_url && (
+              <img src={gameState.currentRecipe.photo_url} alt={gameState.currentRecipe.name + ' photo'} className="rounded-xl max-h-32 object-cover mb-2" />
+            )}
+            <div className="w-full flex flex-col md:flex-row gap-6">
+              <div className="flex-1">
+                <div className="font-semibold mb-1 text-green-700 dark:text-green-300">Ingredients:</div>
+                {Array.isArray(gameState.currentRecipe.ingredients_long) && gameState.currentRecipe.ingredients_long.length > 0 ? (
+                  <ul className="list-disc list-inside mb-2 text-gray-700 dark:text-gray-200">
+                    {gameState.currentRecipe.ingredients_long.map((ing: string, idx: number) => (
+                      <li key={idx}>{ing}</li>
+                    ))}
+                  </ul>
+                ) : typeof gameState.currentRecipe.ingredients_long === 'string' && gameState.currentRecipe.ingredients_long.trim().length > 0 ? (
+                  <div className="mb-2 whitespace-pre-line text-gray-700 dark:text-gray-200">{gameState.currentRecipe.ingredients_long}</div>
+                ) : Array.isArray(gameState.currentRecipe.ingredients) && gameState.currentRecipe.ingredients.length > 0 ? (
+                  <ul className="list-disc list-inside mb-2 text-gray-700 dark:text-gray-200">
+                    {gameState.currentRecipe.ingredients.map((ing: string, idx: number) => (
+                      <li key={idx}>{ing}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-gray-400">No ingredients</div>
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold mb-1 text-green-700 dark:text-green-300">Instructions:</div>
+                {gameState.currentRecipe.instructions_long ? (
+                  <div className="text-gray-700 dark:text-gray-200 whitespace-pre-line">{gameState.currentRecipe.instructions_long}</div>
+                ) : gameState.currentRecipe.instructions ? (
+                  <div className="text-gray-700 dark:text-gray-200 whitespace-pre-line">{gameState.currentRecipe.instructions}</div>
+                ) : (
+                  <div className="text-gray-400">No instructions</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Admin: Next 3 Recipes */}
       {user && nextRecipes.length > 0 && (

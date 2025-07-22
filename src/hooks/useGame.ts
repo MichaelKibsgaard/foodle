@@ -84,6 +84,42 @@ export const useGame = () => {
       setLoadingRecipe(false)
       return
     }
+    // If user is logged in, check if they've already completed this recipe
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: result } = await supabase
+        .from('game_results')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('recipe_id', recipe.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (result) {
+        // Already played: set state to won/lost and show full recipe
+        setGameState({
+          currentRecipe: recipe,
+          guessedIngredients: recipe.ingredients.map((i: string) => i.toLowerCase()),
+          correctIngredients: recipe.ingredients.map((i: string) => i.toLowerCase()),
+          attempts: result.attempts,
+          maxAttempts: MAX_ATTEMPTS,
+          gameStatus: result.won ? 'won' : 'lost',
+          hintsUsed: result.hints_used,
+          maxHints: MAX_HINTS,
+          startTime: Date.now(),
+          endTime: Date.now(),
+        });
+        setHints(recipe.ingredients.map((ingredient: string) => ({
+          type: 'letter_count',
+          ingredient,
+          revealed: true,
+        })));
+        setInputValue('');
+        setLoadingRecipe(false);
+        return;
+      }
+    }
+    // Not played yet: normal game start
     const newHints: Hint[] = recipe.ingredients.map((ingredient: string) => ({
       type: 'letter_count',
       ingredient,

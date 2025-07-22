@@ -9,6 +9,13 @@ export interface Recipe {
   image_url?: string;
   recipe_image?: string;
   photo_url?: string;
+  ingredients_long?: string[] | string;
+  instructions_long?: string;
+  instructions?: string;
+  servings?: number;
+  cookTime?: number;
+  username?: string;
+  userlink?: string;
 }
 
 export interface GameState {

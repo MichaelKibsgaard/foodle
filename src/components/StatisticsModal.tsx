@@ -21,6 +21,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
 }) => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [totalHintsUsed, setTotalHintsUsed] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -28,6 +29,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setStats(null);
+        setTotalHintsUsed(null);
         setLoading(false);
         return;
       }
@@ -37,6 +39,17 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
         .eq('user_id', user.id)
         .single();
       setStats(data);
+      // Fetch total hints used from game_results
+      const { data: hintsData, error } = await supabase
+        .from('game_results')
+        .select('hints_used')
+        .eq('user_id', user.id);
+      if (hintsData && Array.isArray(hintsData)) {
+        const total = hintsData.reduce((sum, row) => sum + (row.hints_used || 0), 0);
+        setTotalHintsUsed(total);
+      } else {
+        setTotalHintsUsed(0);
+      }
       setLoading(false);
     };
     fetchStats();
@@ -73,9 +86,10 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
                 <div className="text-2xl font-bold text-accent-pink">{stats.current_streak}</div>
                 <div className="text-sm text-gray-400">Current Streak</div>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-800 text-center p-4 rounded-xl border border-gray-200 dark:border-gray-700">
-                <div className="text-2xl font-bold text-accent-pink">{stats.best_streak}</div>
-                <div className="text-sm text-gray-400">Best Streak</div>
+              <div className="bg-gray-50 dark:bg-gray-800 text-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col items-center" aria-label="Hints used">
+                <span className="text-3xl" role="img" aria-label="hints" style={{ color: '#a78bfa' }}>❓</span>
+                <div className="text-2xl font-bold text-accent-pink">{totalHintsUsed !== null ? totalHintsUsed : '--'}</div>
+                <div className="text-sm text-gray-400">Hints Used</div>
               </div>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800 text-center p-4 rounded-xl border border-gray-200 dark:border-gray-700">

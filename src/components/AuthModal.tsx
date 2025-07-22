@@ -30,33 +30,33 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 text-center border border-pink-100 animate-fade-in">
-        <h2 className="text-3xl font-extrabold mb-4 text-vibrant-pink tracking-tight">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 text-center border border-gray-200 dark:border-gray-800 animate-fade-in" style={{ fontFamily: 'Inter, sans-serif', textShadow: 'none' }}>
+        <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white text-center" style={{ fontFamily: 'Inter, sans-serif', textShadow: 'none' }}>
           {mode === 'login' ? 'Log In to Foodle' : 'Sign Up for Foodle'}
         </h2>
-        <form onSubmit={mode === 'login' ? handleEmailAuth : handleEmailAuth} className="space-y-4">
+        <form onSubmit={handleEmailAuth} className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="text-sm font-medium text-wordle-text">Email</label>
+            <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
             <input
               id="email"
               type="email"
               placeholder="you@email.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="glass-input w-full"
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
               required
               autoFocus
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="password" className="text-sm font-medium text-wordle-text">Password</label>
+            <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
             <input
               id="password"
               type="password"
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="glass-input w-full"
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
               required
             />
           </div>
@@ -67,25 +67,25 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 type="checkbox"
                 checked={optIn}
                 onChange={e => setOptIn(e.target.checked)}
-                className="accent-accent-pink rounded border border-wordle-border"
+                className="accent-green-400 rounded border border-gray-300 dark:border-gray-600"
               />
-              <label htmlFor="optin" className="text-sm text-wordle-text select-none">
+              <label htmlFor="optin" className="text-sm text-gray-700 dark:text-gray-200 select-none">
                 I want to receive Foodle news and updates
               </label>
             </div>
           )}
-          <button type="submit" className={`btn-primary w-full py-3 text-lg rounded-xl ${mode === 'signup' ? 'bg-yellow-400' : ''}`}>
+          <button type="submit" className="w-full py-3 text-lg rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold transition focus:outline-none focus:ring-2 focus:ring-green-400">
             {loading ? 'Loading...' : mode === 'login' ? 'Log In' : 'Sign Up'}
           </button>
         </form>
         <div className="mt-4 text-sm text-gray-500">
           {mode === 'login' ? (
             <>Don't have an account?{' '}
-              <button className="text-vibrant-pink font-bold" onClick={() => setMode('signup')}>Sign Up</button>
+              <button className="text-green-600 hover:text-green-700 font-bold transition" onClick={() => setMode('signup')}>Sign Up</button>
             </>
           ) : (
             <>Already have an account?{' '}
-              <button className="text-vibrant-pink font-bold" onClick={() => setMode('login')}>Log In</button>
+              <button className="text-green-600 hover:text-green-700 font-bold transition" onClick={() => setMode('login')}>Log In</button>
             </>
           )}
         </div>

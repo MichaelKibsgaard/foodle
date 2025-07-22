@@ -175,6 +175,48 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
                   <span>Serves {selectedRecipe.servings || 4}</span>
                   <Clock className="w-4 h-4 ml-4" />
                   <span>{selectedRecipe.cookTime || '30'} min</span>
+                  {/* Cuisine */}
+                  <span className="ml-4 flex items-center gap-1">
+                    <span role="img" aria-label="Cuisine">🍽️</span>
+                    <span>{selectedRecipe.category || 'Unknown'}</span>
+                  </span>
+                  {/* Difficulty */}
+                  <span className="ml-4 flex items-center gap-1">
+                    <span role="img" aria-label="Difficulty">🎯</span>
+                    <span>{selectedRecipe.difficulty ? selectedRecipe.difficulty.charAt(0).toUpperCase() + selectedRecipe.difficulty.slice(1) : 'Unknown'}</span>
+                  </span>
+                </div>
+                {/* Username and Instagram link row */}
+                <div className="flex justify-center items-center gap-2 text-xs mb-2">
+                  {/* Username */}
+                  {selectedRecipe.username && selectedRecipe.username.trim() ? (
+                    <span className="flex items-center font-semibold text-green-700 dark:text-green-400">
+                      <svg className="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm0 2c-3.314 0-6 1.686-6 3.75V18h12v-2.25C16 13.686 13.314 12 10 12z" /></svg>
+                      {selectedRecipe.username}
+                    </span>
+                  ) : (
+                    <span className="flex items-center text-gray-400">
+                      <svg className="w-4 h-4 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm0 2c-3.314 0-6 1.686-6 3.75V18h12v-2.25C16 13.686 13.314 12 10 12z" /></svg>
+                      No Username
+                    </span>
+                  )}
+                  {/* Instagram Link */}
+                  {selectedRecipe.userlink && selectedRecipe.userlink.trim() ? (
+                    <a
+                      href={selectedRecipe.userlink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center font-semibold text-blue-600 dark:text-blue-400 hover:underline ml-2"
+                    >
+                      <svg className="w-4 h-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M7.75 2A5.75 5.75 0 002 7.75v8.5A5.75 5.75 0 007.75 22h8.5A5.75 5.75 0 0022 16.25v-8.5A5.75 5.75 0 0016.25 2h-8.5zm0 1.5h8.5A4.25 4.25 0 0120.5 7.75v8.5a4.25 4.25 0 01-4.25 4.25h-8.5A4.25 4.25 0 013.5 16.25v-8.5A4.25 4.25 0 017.75 3.5zm4.25 2.75a4.25 4.25 0 100 8.5 4.25 4.25 0 000-8.5zm0 1.5a2.75 2.75 0 110 5.5 2.75 2.75 0 010-5.5zm5.25 1.25a1 1 0 110 2 1 1 0 010-2z" /></svg>
+                      [Instagram]
+                    </a>
+                  ) : (
+                    <span className="flex items-center text-gray-400 ml-2">
+                      <svg className="w-4 h-4 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M7.75 2A5.75 5.75 0 002 7.75v8.5A5.75 5.75 0 007.75 22h8.5A5.75 5.75 0 0022 16.25v-8.5A5.75 5.75 0 0016.25 2h-8.5zm0 1.5h8.5A4.25 4.25 0 0120.5 7.75v8.5a4.25 4.25 0 01-4.25 4.25h-8.5A4.25 4.25 0 013.5 16.25v-8.5A4.25 4.25 0 017.75 3.5zm4.25 2.75a4.25 4.25 0 100 8.5 4.25 4.25 0 000-8.5zm0 1.5a2.75 2.75 0 110 5.5 2.75 2.75 0 010-5.5zm5.25 1.25a1 1 0 110 2 1 1 0 010-2z" /></svg>
+                      [No Instagram]
+                    </span>
+                  )}
                 </div>
                 {/* Ingredients */}
                 <div>
@@ -182,6 +224,14 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
                   {Array.isArray(selectedRecipe.ingredients_long) && selectedRecipe.ingredients_long.length > 0 ? (
                     <ul className="list-disc list-inside mb-2">
                       {selectedRecipe.ingredients_long.map((ing: string, idx: number) => (
+                        <li key={idx}>{ing}</li>
+                      ))}
+                    </ul>
+                  ) : typeof selectedRecipe.ingredients_long === 'string' && selectedRecipe.ingredients_long.trim().length > 0 ? (
+                    <div className="mb-2 whitespace-pre-line">{selectedRecipe.ingredients_long}</div>
+                  ) : Array.isArray(selectedRecipe.ingredients) && selectedRecipe.ingredients.length > 0 ? (
+                    <ul className="list-disc list-inside mb-2">
+                      {selectedRecipe.ingredients.map((ing: string, idx: number) => (
                         <li key={idx}>{ing}</li>
                       ))}
                     </ul>
