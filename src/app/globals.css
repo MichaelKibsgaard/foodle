@@ -234,6 +234,18 @@ p, .modal-content, .glass-card, .glass-panel {
     box-shadow: none !important;
     animation: none !important;
   }
+  .glow-top {
+    border-top-color: #fbbf24 !important;
+  }
+  .glow-bottom {
+    border-bottom-color: #fbbf24 !important;
+  }
+  .glow-left {
+    border-left-color: #fbbf24 !important;
+  }
+  .glow-right {
+    border-right-color: #fbbf24 !important;
+  }
   .ingredient-dashes {
     font-size: 1.1rem;
     color: #222;
@@ -743,4 +755,26 @@ body:not(.retro-mode) .glass-button:hover {
   color: #ff00cc !important;
   border-color: #e5e7eb !important;
   text-shadow: 0 0 8px #ff00cc, 0 0 16px #ff00cc !important;
+} 
+
+/* Metallic shine effect for Cookbook recipe boxes */
+.shine-hover .shine-effect {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(120deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.85) 40%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.0) 60%, rgba(255,255,255,0.0) 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.2s;
+}
+.shine-hover:hover .shine-effect {
+  opacity: 1;
+  animation: shine-move-cookbook 1.5s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes shine-move-cookbook {
+  0% { transform: translateX(-120%) skewX(-20deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(140%) skewX(-20deg); opacity: 0; }
 } 

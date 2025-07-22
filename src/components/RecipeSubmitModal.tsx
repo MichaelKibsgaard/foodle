@@ -101,23 +101,23 @@ export const RecipeSubmitModal: React.FC<{
   const requireNameEmail = !user;
 
   return (
-    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-label="Submit Recipe Modal">
-      <form className="modal-content max-w-lg animate-fade-in flex flex-col gap-4 overflow-y-auto max-h-[80vh]" onSubmit={handleSubmit}>
-        <h2 className="text-2xl font-bold mb-2 text-accent-pink text-center">Submit Your Recipe</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={e => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-label="Submit Recipe Modal">
+      <form className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4 border border-gray-200 dark:border-gray-800 animate-fade-in flex flex-col gap-4 overflow-y-auto max-h-[80vh]" onSubmit={handleSubmit}>
+        <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white text-center">Submit Your Recipe</h2>
         <label className="flex flex-col gap-1">
           Recipe Name
-          <input className="glass-input" value={name} onChange={e => setName(e.target.value)} required />
+          <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={name} onChange={e => setName(e.target.value)} required />
         </label>
         <label className="flex flex-col gap-1">
           Cuisine
-          <select className="glass-input" value={cuisine} onChange={e => setCuisine(e.target.value)} required>
+          <select className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={cuisine} onChange={e => setCuisine(e.target.value)} required>
             <option value="">Select...</option>
             {CUISINES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
         <label className="flex flex-col gap-1">
           Difficulty
-          <select className="glass-input" value={difficulty} onChange={e => setDifficulty(e.target.value)} required>
+          <select className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={difficulty} onChange={e => setDifficulty(e.target.value)} required>
             <option value="">Select...</option>
             {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
@@ -125,55 +125,55 @@ export const RecipeSubmitModal: React.FC<{
         <label className="flex flex-col gap-1">
           Ingredients
           <div className="flex gap-2">
-            <select className="glass-input flex-1 ingredient-input-small" value={ingredientInput} onChange={e => handleIngredientChange(e.target.value)}>
+            <select className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" value={ingredientInput} onChange={e => handleIngredientChange(e.target.value)}>
               <option value="">Select ingredient...</option>
               {COMMON_INGREDIENTS.map(i => <option key={i} value={i}>{i}</option>)}
             </select>
             {showCustom && (
-              <input className="glass-input flex-1 ingredient-input-small" placeholder="Custom ingredient" value={customIngredient} onChange={e => setCustomIngredient(e.target.value)} />
+              <input className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" placeholder="Custom ingredient" value={customIngredient} onChange={e => setCustomIngredient(e.target.value)} />
             )}
-            <button type="button" className="btn-primary px-3" onClick={addIngredient}>Add</button>
+            <button type="button" className="bg-accent-pink text-white rounded-lg px-3 py-2 font-semibold hover:bg-pink-500 transition" onClick={addIngredient}>Add</button>
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
             {ingredients.map(ing => (
-              <span key={ing} className="bg-pink-100 text-pink-700 rounded-full px-3 py-1 text-sm flex items-center gap-1">
+              <span key={ing} className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-3 py-1 text-sm flex items-center gap-1">
                 {ing}
-                <button type="button" className="ml-1 text-pink-500 hover:text-pink-700" onClick={() => removeIngredient(ing)} aria-label={`Remove ${ing}`}>×</button>
+                <button type="button" className="ml-1 text-gray-500 hover:text-gray-700" onClick={() => removeIngredient(ing)} aria-label={`Remove ${ing}`}>×</button>
               </span>
             ))}
           </div>
         </label>
         <label className="flex flex-col gap-1">
           Description
-          <textarea className="glass-input" value={description} onChange={e => setDescription(e.target.value)} required rows={2} />
+          <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={description} onChange={e => setDescription(e.target.value)} required rows={2} />
         </label>
         <label className="flex flex-col gap-1">
           Recipe / Instructions
-          <textarea className="glass-input" value={instructions} onChange={e => setInstructions(e.target.value)} required rows={3} />
+          <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-pink" value={instructions} onChange={e => setInstructions(e.target.value)} required rows={3} />
         </label>
         <label className="flex flex-col gap-1">
           Servings
-          <input className="glass-input" type="number" min="1" value={servings} onChange={e => setServings(e.target.value)} required />
+          <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="number" min="1" value={servings} onChange={e => setServings(e.target.value)} required />
         </label>
         <label className="flex flex-col gap-1">
           Image (optional)
-          <input className="glass-input" type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
+          <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
         </label>
         {requireNameEmail && (
           <>
             <label className="flex flex-col gap-1">
               Your Name
-              <input className="glass-input" value={submitName} onChange={e => setSubmitName(e.target.value)} required />
+              <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" value={submitName} onChange={e => setSubmitName(e.target.value)} required />
             </label>
             <label className="flex flex-col gap-1">
               Your Email
-              <input className="glass-input" type="email" value={submitEmail} onChange={e => setSubmitEmail(e.target.value)} required />
+              <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="email" value={submitEmail} onChange={e => setSubmitEmail(e.target.value)} required />
             </label>
           </>
         )}
         <div className="flex gap-2 mt-4">
-          <button type="button" className="btn-outline flex-1" onClick={onClose} disabled={uploading}>Cancel</button>
-          <button type="submit" className="btn-primary flex-1" disabled={uploading}>{uploading ? 'Submitting...' : 'Submit'}</button>
+          <button type="button" className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg px-4 py-2 font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition flex-1" onClick={onClose} disabled={uploading}>Cancel</button>
+          <button type="submit" className="bg-accent-pink text-white rounded-lg px-4 py-2 font-semibold hover:bg-pink-500 transition flex-1" disabled={uploading}>{uploading ? 'Submitting...' : 'Submit'}</button>
         </div>
       </form>
     </div>

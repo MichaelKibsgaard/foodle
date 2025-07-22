@@ -76,6 +76,32 @@ export interface Database {
           created_at?: string
         }
       }
+      user_stats: {
+        Row: {
+          user_id: string;
+          games_played: number;
+          games_won: number;
+          current_streak: number;
+          best_streak: number;
+          last_played: string; // ISO date string
+        };
+        Insert: {
+          user_id: string;
+          games_played?: number;
+          games_won?: number;
+          current_streak?: number;
+          best_streak?: number;
+          last_played?: string;
+        };
+        Update: {
+          user_id?: string;
+          games_played?: number;
+          games_won?: number;
+          current_streak?: number;
+          best_streak?: number;
+          last_played?: string;
+        };
+      };
     }
   }
 } 

@@ -315,7 +315,6 @@ export default function Home() {
       <audio ref={incorrectSoundRef} src="/sounds/incorrect-answer.mp3" preload="auto" />
       <audio ref={winSoundRef} src="/sounds/you-won.mp3" preload="auto" />
       <audio ref={loseSoundRef} src="/sounds/you-lost.mp3" preload="auto" />
-      
       {/* Confetti overlay */}
       {showConfetti && (
         <Confetti
@@ -325,41 +324,14 @@ export default function Home() {
           recycle={false}
         />
       )}
-      {/* Top Bar */}
-      <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-2 w-full max-w-5xl mx-auto relative bg-white/70 dark:bg-gray-900/70 backdrop-blur-md shadow-md rounded-b-2xl border-b border-pink-100/40 animate-fade-in">
-        {/* Logo */}
-        <div className="text-xl font-extrabold tracking-widest text-gray-800 dark:text-white drop-shadow-sm">FOODLE</div>
-        {/* Timer Centered Absolutely */}
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="bg-gray-100/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-200 rounded-2xl px-6 py-1 font-mono text-base font-semibold shadow transition-all">
-            Next game in {formatAestTime(aestTimeLeft)}
-          </div>
-        </div>
-        {/* Right: Book, Graph, Dark Mode, Sign In */}
-        <div className="flex items-center space-x-2">
-          <button
-            className="bg-gray-100 dark:bg-gray-800 rounded-full p-2 shadow hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-150 hover:scale-110"
-            title="Cookbook"
-            onClick={() => setShowCookbook(true)}
-            aria-label="Open cookbook"
-          >
-            <span role="img" aria-label="book">📖</span>
-          </button>
-          <button
-            className="bg-gray-100 dark:bg-gray-800 rounded-full p-2 shadow hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-150 hover:scale-110"
-            title="Statistics"
-            onClick={() => setShowStats(true)}
-            aria-label="Open statistics"
-          >
-            <span role="img" aria-label="graph">📊</span>
-          </button>
-          { !user && (
-            <button className="bg-gradient-to-r from-pink-400 to-yellow-300 text-white font-bold rounded-lg px-4 py-2 flex items-center gap-1 shadow transition-all duration-150 hover:scale-105 hover:from-pink-500 hover:to-yellow-400 text-base" onClick={() => setShowAuth(true)}>
-              Log In
-            </button>
-          )}
-        </div>
-      </div>
+      {/* Header Bar (replaces old top bar) */}
+      <Header
+        gameStatus={gameState.gameStatus}
+        attempts={gameState.attempts}
+        maxAttempts={gameState.maxAttempts}
+        hintsUsed={gameState.hintsUsed}
+        maxHints={maxHints}
+      />
 
       {/* Main Centered Box */}
       <div className="flex flex-col items-center w-full max-w-5xl mx-auto mt-8 mb-8">
@@ -377,7 +349,13 @@ export default function Home() {
             <span>{gameState.currentRecipe?.name || 'No food of the day set!'}</span>
           </div>
           {/* Photo Placeholder or Recipe Image */}
-          {gameState.currentRecipe?.recipe_image ? (
+          {gameState.currentRecipe?.photo_url ? (
+            <img
+              src={gameState.currentRecipe.photo_url}
+              alt={gameState.currentRecipe.name + ' photo'}
+              className="w-48 h-36 object-cover rounded-2xl mb-1 border-2 border-gray-100 dark:border-gray-800 shadow-inner"
+            />
+          ) : gameState.currentRecipe?.recipe_image ? (
             <img
               src={gameState.currentRecipe.recipe_image}
               alt={gameState.currentRecipe.name + ' photo'}

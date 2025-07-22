@@ -8,6 +8,7 @@ export interface Recipe {
   description?: string;
   image_url?: string;
   recipe_image?: string;
+  photo_url?: string;
 }
 
 export interface GameState {

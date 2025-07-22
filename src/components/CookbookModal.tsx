@@ -12,6 +12,7 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRecipe, setSelectedRecipe] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchCompletedRecipes = async () => {
@@ -64,78 +65,145 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={handleBackdropClick} role="dialog" aria-modal="true" aria-label="Cookbook Modal">
-      <div className="modal-content max-w-2xl max-h-[80vh] overflow-hidden animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={handleBackdropClick} role="dialog" aria-modal="true" aria-label="Cookbook Modal">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-4xl w-full mx-4 border border-gray-200 dark:border-gray-800 flex flex-col max-h-[80vh] overflow-hidden animate-fade-in">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-wordle-text glow-animation" id="cookbook-title">Cookbook</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white" id="cookbook-title" style={{ fontFamily: 'Inter, sans-serif', textShadow: 'none' }}>Cookbook</h2>
           <button
             onClick={onClose}
-            className="glass-button p-1 rounded-lg hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+            className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-accent-pink"
             aria-label="Close cookbook"
           >
-            <X className="w-5 h-5 text-wordle-text" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
         {/* Search Bar */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-wordle-absent" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Search recipes or ingredients..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="glass-input w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-pink"
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent-pink"
             aria-label="Search recipes or ingredients"
           />
         </div>
-        {/* Recipes List */}
+        {/* Recipes Grid */}
         {loading ? (
-          <div className="skeleton h-32 w-full rounded-lg" aria-busy="true" aria-live="polite"></div>
+          <div className="animate-pulse h-32 w-full rounded-lg bg-gray-100 dark:bg-gray-800" aria-busy="true" aria-live="polite"></div>
         ) : filteredRecipes.length === 0 ? (
-          <div className="glass-panel text-center py-8 rounded-lg">
-            <span className="text-wordle-absent">No completed recipes found.</span>
+          <div className="bg-gray-50 dark:bg-gray-800 text-center py-8 rounded-lg">
+            <span className="text-gray-400">Recipes will be added here as you complete them</span>
           </div>
         ) : (
-          filteredRecipes.map((recipe, index) => (
-            <div
-              key={index}
-              className="glass-panel p-4 rounded-lg hover:scale-105 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-pink"
-              tabIndex={0}
-              aria-label={`Recipe: ${recipe.name}`}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="font-semibold text-wordle-text">{recipe.name}</h3>
-                <div className="flex items-center space-x-2 text-sm text-wordle-absent">
-                  <Clock className="w-4 h-4" />
-                  <span>{recipe.cookTime || '30'} min</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 overflow-y-auto pr-2" style={{ maxHeight: '40vh' }}>
+            {filteredRecipes.map((recipe, index) => (
+              <button
+                key={index}
+                className={`bg-gray-50 dark:bg-gray-800 p-6 h-52 rounded-xl border border-gray-200 dark:border-gray-700 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-pink flex flex-col items-start text-left relative overflow-hidden group shine-hover transform-gpu hover:scale-[1.015] m-2`} 
+                tabIndex={0}
+                aria-label={`Recipe: ${recipe.name}`}
+                onClick={() => setSelectedRecipe(recipe)}
+                onMouseMove={e => {
+                  const btn = e.currentTarget;
+                  const rect = btn.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const y = e.clientY - rect.top;
+                  const edge = Math.min(x, rect.width - x, y, rect.height - y);
+                  btn.classList.remove('glow-top', 'glow-bottom', 'glow-left', 'glow-right');
+                  if (edge === x) btn.classList.add('glow-left');
+                  else if (edge === rect.width - x) btn.classList.add('glow-right');
+                  else if (edge === y) btn.classList.add('glow-top');
+                  else btn.classList.add('glow-bottom');
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.classList.remove('glow-top', 'glow-bottom', 'glow-left', 'glow-right');
+                }}
+              >
+                <div className="mb-2">
+                  <span className="text-2xl mr-2 align-middle">{recipe.emoji}</span>
+                  <span className="font-semibold text-lg text-gray-800 dark:text-white align-middle" style={{ fontFamily: 'Inter, sans-serif', textShadow: 'none' }}>{recipe.name}</span>
                 </div>
-              </div>
-              <div className="flex items-center space-x-2 mb-3 text-sm text-wordle-absent">
-                <Users className="w-4 h-4" />
-                <span>Serves {recipe.servings || 4}</span>
-              </div>
-              {recipe.ingredients.slice(0, 5).map((ingredient: string, idx: number) => (
-                <span
-                  key={idx}
-                  className="glass-panel px-2 py-1 text-xs rounded-full text-wordle-text"
-                >
-                  {ingredient}
-                </span>
-              ))}
-              {recipe.ingredients.length > 5 && (
-                <span className="glass-panel px-2 py-1 text-xs rounded-full text-wordle-absent">
-                  +{recipe.ingredients.length - 5} more
-                </span>
-              )}
-            </div>
-          ))
+                <div className="text-sm text-gray-500 mb-1">
+                  <div>Serves: {recipe.servings || 4}</div>
+                  <div>Time: {recipe.cookTime || '30'} minutes</div>
+                  <div>Cuisine: {recipe.category || 'Unknown'}</div>
+                  <div>Difficulty: {recipe.difficulty ? recipe.difficulty.charAt(0).toUpperCase() + recipe.difficulty.slice(1) : 'Unknown'}</div>
+                </div>
+                {/* Metallic shine effect */}
+                <span className="absolute inset-0 pointer-events-none shine-effect" />
+              </button>
+            ))}
+          </div>
         )}
         {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-wordle-border/30 text-center">
-          <div className="glass-panel inline-block px-4 py-2 rounded-lg">
-            <span className="text-sm text-wordle-absent">{filteredRecipes.length} recipes found</span>
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
+          <div className="inline-block px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+            <span className="text-sm text-gray-400">{filteredRecipes.length} recipes found</span>
           </div>
         </div>
+        {/* Recipe Details Pop-out */}
+        {selectedRecipe && (
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50" onClick={e => e.target === e.currentTarget && setSelectedRecipe(null)}>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4 border border-gray-200 dark:border-gray-800">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{selectedRecipe.emoji}</span>
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-white" style={{ fontFamily: 'Inter, sans-serif', textShadow: 'none' }}>{selectedRecipe.name}</h3>
+                </div>
+                <button onClick={() => setSelectedRecipe(null)} className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-accent-pink" aria-label="Close recipe details">
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 flex flex-col gap-4">
+                {/* Photo */}
+                {selectedRecipe.photo_url ? (
+                  <div className="flex justify-center mb-2">
+                    <img src={selectedRecipe.photo_url} alt={selectedRecipe.name + ' photo'} className="rounded-xl max-h-40 object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-2">No photo</div>
+                )}
+                {/* Description */}
+                <div className="text-gray-700 dark:text-gray-200 text-base min-h-[2rem]">
+                  {selectedRecipe.description ? selectedRecipe.description : <span className="text-gray-400">No description</span>}
+                </div>
+                {/* Servings and Time */}
+                <div className="mb-2 text-gray-500 text-sm flex items-center gap-3">
+                  <Users className="w-4 h-4" />
+                  <span>Serves {selectedRecipe.servings || 4}</span>
+                  <Clock className="w-4 h-4 ml-4" />
+                  <span>{selectedRecipe.cookTime || '30'} min</span>
+                </div>
+                {/* Ingredients */}
+                <div>
+                  <div className="font-semibold mb-1">Ingredients:</div>
+                  {Array.isArray(selectedRecipe.ingredients_long) && selectedRecipe.ingredients_long.length > 0 ? (
+                    <ul className="list-disc list-inside mb-2">
+                      {selectedRecipe.ingredients_long.map((ing: string, idx: number) => (
+                        <li key={idx}>{ing}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-gray-400">No ingredients</div>
+                  )}
+                </div>
+                {/* Instructions */}
+                <div>
+                  <div className="font-semibold mb-1">Instructions:</div>
+                  {selectedRecipe.instructions_long ? (
+                    <div>{selectedRecipe.instructions_long}</div>
+                  ) : selectedRecipe.instructions ? (
+                    <div>{selectedRecipe.instructions}</div>
+                  ) : (
+                    <div className="text-gray-400">No instructions</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
