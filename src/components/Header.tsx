@@ -190,7 +190,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="Cookbook"
               aria-label="Open cookbook"
             >
-              <span role="img" aria-label="Cookbook">📖</span>
+              <span role="img" aria-label="Cookbook" className="text-2xl md:text-3xl drop-shadow-[0_2px_6px_rgba(255,255,255,0.25)]" style={{ filter: 'drop-shadow(0 0 6px #fff8) drop-shadow(0 0 2px #ff69b4)' }}>📖</span>
             </button>
             <button
               onClick={() => setShowStats(true)}
@@ -198,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="Statistics"
               aria-label="Open statistics"
             >
-              <span role="img" aria-label="Stats">📊</span>
+              <span role="img" aria-label="Stats" className="text-2xl md:text-3xl drop-shadow-[0_2px_6px_rgba(255,255,255,0.25)]" style={{ filter: 'drop-shadow(0 0 6px #fff8) drop-shadow(0 0 2px #00bcd4)' }}>📊</span>
             </button>
             {/* User/Account Button */}
             {user ? (

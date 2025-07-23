@@ -117,10 +117,12 @@ export const RecipeSubmitModal: React.FC<{
         <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white text-center" style={{ fontFamily: 'Inter, sans-serif', textShadow: 'none' }}>Submit Your Recipe</h2>
         <label className="flex flex-col gap-1">
           Recipe Name
+          <span className="text-xs text-gray-500 dark:text-gray-300">Enter the name of your recipe.</span>
           <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={name} onChange={e => setName(e.target.value)} required />
         </label>
         <label className="flex flex-col gap-1">
           Cuisine
+          <span className="text-xs text-gray-500 dark:text-gray-300">Select the cuisine type that best fits your recipe.</span>
           <select className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={cuisine} onChange={e => setCuisine(e.target.value)} required>
             <option value="">Select...</option>
             {CUISINES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -128,6 +130,7 @@ export const RecipeSubmitModal: React.FC<{
         </label>
         <label className="flex flex-col gap-1">
           Difficulty
+          <span className="text-xs text-gray-500 dark:text-gray-300">How hard is this recipe to make?</span>
           <select className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={difficulty} onChange={e => setDifficulty(e.target.value)} required>
             <option value="">Select...</option>
             {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
@@ -135,6 +138,7 @@ export const RecipeSubmitModal: React.FC<{
         </label>
         <label className="flex flex-col gap-1">
           Game Ingredients
+          <span className="text-xs text-gray-500 dark:text-gray-300">Add the main ingredients for the guessing game. Use 'Add' after each one.</span>
           <div className="flex gap-2">
             <select className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" value={ingredientInput} onChange={e => handleIngredientChange(e.target.value)}>
               <option value="">Select ingredient...</option>
@@ -156,36 +160,44 @@ export const RecipeSubmitModal: React.FC<{
         </label>
         <label className="flex flex-col gap-1">
           Description
+          <span className="text-xs text-gray-500 dark:text-gray-300">Briefly describe your recipe and what makes it special.</span>
           <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={description} onChange={e => setDescription(e.target.value)} required rows={2} />
         </label>
         <label className="flex flex-col gap-1">
           Full Ingredient List
+          <span className="text-xs text-gray-500 dark:text-gray-300">List all ingredients, one per line.</span>
           <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="One ingredient per line" rows={3} value={fullIngredients} onChange={e => setFullIngredients(e.target.value)} />
         </label>
         <label className="flex flex-col gap-1">
           Instructions
+          <span className="text-xs text-gray-500 dark:text-gray-300">Write step-by-step instructions for making the recipe.</span>
           <textarea className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={instructions} onChange={e => setInstructions(e.target.value)} required rows={3} />
         </label>
         <label className="flex flex-col gap-1">
           Servings
+          <span className="text-xs text-gray-500 dark:text-gray-300">How many people does this recipe serve?</span>
           <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="number" min="1" value={servings} onChange={e => setServings(e.target.value)} required />
         </label>
         <label className="flex flex-col gap-1">
           Instagram Link (optional)
+          <span className="text-xs text-gray-500 dark:text-gray-300">Share your Instagram for credit (optional).</span>
           <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="url" placeholder="https://instagram.com/yourprofile" value={instagramLink} onChange={e => setInstagramLink(e.target.value)} />
         </label>
         <label className="flex flex-col gap-1">
           Image (optional)
+          <span className="text-xs text-gray-500 dark:text-gray-300">Upload a photo of your dish (optional).</span>
           <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
         </label>
         {requireNameEmail && (
           <>
             <label className="flex flex-col gap-1">
               Name
+              <span className="text-xs text-gray-500 dark:text-gray-300">Enter your name so we can credit you.</span>
               <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" value={submitName} onChange={e => setSubmitName(e.target.value)} required />
             </label>
             <label className="flex flex-col gap-1">
               Email
+              <span className="text-xs text-gray-500 dark:text-gray-300">We'll only use this to contact you about your recipe.</span>
               <input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2" type="email" value={submitEmail} onChange={e => setSubmitEmail(e.target.value)} required />
             </label>
           </>
