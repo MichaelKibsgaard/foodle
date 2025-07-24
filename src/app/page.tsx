@@ -383,7 +383,7 @@ export default function Home() {
               return (
                 <img
                   src={img}
-                  alt={gameState.currentRecipe.name + ' photo'}
+                  alt={(gameState.currentRecipe?.name || 'Recipe') + ' photo'}
                   className="w-48 h-36 object-cover rounded-2xl mb-1 border-2 border-gray-100 dark:border-gray-800 shadow-inner"
                 />
               );
@@ -605,6 +605,10 @@ export default function Home() {
               onClick={async () => {
                 try {
                   const recipe = gameState.currentRecipe;
+                  if (!recipe) {
+                    alert('No recipe data available.');
+                    return;
+                  }
                   const doc = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
                   const pageWidth = doc.internal.pageSize.getWidth();
                   const pageHeight = doc.internal.pageSize.getHeight();
@@ -613,16 +617,16 @@ export default function Home() {
                   doc.setFont('helvetica', 'bold');
                   doc.setFontSize(22);
                   doc.setTextColor(34,197,94);
-                  doc.text(recipe.name || 'Recipe', pageWidth / 2, y, { align: 'center' });
+                  doc.text((recipe.name || 'Recipe'), pageWidth / 2, y, { align: 'center' });
                   y += 10;
                   // Photo
                   let photoHeight = 0;
-                  if (recipe.photo_url || recipe.image_url || recipe.recipe_image) {
+                  const imgUrl = recipe.photo_url || recipe.image_url || recipe.recipe_image || '';
+                  if (imgUrl) {
                     try {
-                      const imgUrl = recipe.photo_url || recipe.image_url || recipe.recipe_image;
                       const img = new window.Image();
                       img.crossOrigin = 'Anonymous';
-                      img.src = imgUrl;
+                      img.src = typeof imgUrl === 'string' ? imgUrl : '';
                       await new Promise((resolve, reject) => {
                         img.onload = resolve;
                         img.onerror = reject;
