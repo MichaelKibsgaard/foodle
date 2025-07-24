@@ -190,16 +190,33 @@ export const useGame = () => {
     const normalizedGuess = ingredient.toLowerCase().trim()
     const normalizedIngredients = gameState.currentRecipe.ingredients.map(i => i.toLowerCase())
 
+    // Helper for plural/singular and substring matching
+    function isAdjacentMatch(guess: string, ingredient: string) {
+      // Exact match
+      if (guess === ingredient) return true;
+      // Plural/singular (basic)
+      if (guess.endsWith('s') && guess.slice(0, -1) === ingredient) return true;
+      if (ingredient.endsWith('s') && ingredient.slice(0, -1) === guess) return true;
+      // Substring (multi-word)
+      if (ingredient.includes(guess) || guess.includes(ingredient)) return true;
+      return false;
+    }
+
+    // Find a matching ingredient (adjacent logic)
+    const matchedIngredient = normalizedIngredients.find(ing => isAdjacentMatch(normalizedGuess, ing));
+
     // If already guessed, do nothing
     if (gameState.guessedIngredients.includes(normalizedGuess)) {
       setInputValue('')
       return
     }
 
-    if (normalizedIngredients.includes(normalizedGuess)) {
+    if (matchedIngredient) {
       // Correct guess, only if not already in correctIngredients
-      if (!gameState.correctIngredients.includes(normalizedGuess)) {
-        const newCorrectIngredients = [...gameState.correctIngredients, normalizedGuess]
+      // Use the canonical ingredient for correctIngredients
+      const canonical = matchedIngredient;
+      if (!gameState.correctIngredients.includes(canonical)) {
+        const newCorrectIngredients = [...gameState.correctIngredients, canonical]
         const newGuessedIngredients = [...gameState.guessedIngredients, normalizedGuess]
 
         setGameState(prev => ({
