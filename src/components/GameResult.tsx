@@ -11,6 +11,7 @@ interface GameResultProps {
   hintsUsed: number
   onRestart: () => void
   timeSpent?: number
+  guessedWords: string[]
 }
 
 export const GameResult: React.FC<GameResultProps> = ({
@@ -20,6 +21,7 @@ export const GameResult: React.FC<GameResultProps> = ({
   hintsUsed,
   onRestart,
   timeSpent,
+  guessedWords,
 }) => {
   const winSound = useRef<HTMLAudioElement | null>(null);
   const loseSound = useRef<HTMLAudioElement | null>(null);
@@ -102,6 +104,27 @@ export const GameResult: React.FC<GameResultProps> = ({
                 {ingredient}
               </div>
             ))}
+          </div>
+          {/* Guessed Words List */}
+          <div className="mt-6">
+            <h4 className="font-semibold text-wordle-text mb-2">Your Guesses:</h4>
+            <div className="flex flex-wrap gap-2">
+              {guessedWords.length === 0 ? (
+                <span className="text-gray-400">No guesses made.</span>
+              ) : (
+                guessedWords.map((word, idx) => {
+                  const isCorrect = recipe.ingredients.map(i => i.toLowerCase()).includes(word.toLowerCase());
+                  return (
+                    <span
+                      key={idx}
+                      className={`px-3 py-1 rounded-full text-sm font-semibold border-2 ${isCorrect ? 'bg-green-200 text-green-800 border-green-400' : 'bg-red-100 text-red-600 border-red-300'}`}
+                    >
+                      {word}
+                    </span>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
         {/* Action Buttons */}

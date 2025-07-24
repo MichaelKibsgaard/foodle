@@ -5,13 +5,34 @@ import { supabase } from '@/lib/supabase'
 const MAX_ATTEMPTS = 5
 const MAX_HINTS = 3
 
-function getTodayUTCDateString() {
-  const now = new Date()
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString().slice(0, 10)
+function getTodayAESTDateString() {
+  const now = new Date();
+  // Convert to AEST (UTC+10, no DST)
+  const nowUTC = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds(),
+    now.getUTCMilliseconds()
+  );
+  const nowInAEST = new Date(nowUTC + 10 * 60 * 60 * 1000);
+  // If before 8am AEST, use previous day
+  let year = nowInAEST.getUTCFullYear();
+  let month = nowInAEST.getUTCMonth();
+  let date = nowInAEST.getUTCDate();
+  if (nowInAEST.getHours() < 8) {
+    const prev = new Date(Date.UTC(year, month, date - 1));
+    year = prev.getUTCFullYear();
+    month = prev.getUTCMonth();
+    date = prev.getUTCDate();
+  }
+  return new Date(Date.UTC(year, month, date)).toISOString().slice(0, 10);
 }
 
 function getLocalStorageKey() {
-  return `foodle_game_state_${getTodayUTCDateString()}`;
+  return `foodle_game_state_${getTodayAESTDateString()}`;
 }
 
 export const useGame = () => {
@@ -73,7 +94,7 @@ export const useGame = () => {
   // Fetch today's recipe by UTC date
   const fetchTodaysRecipe = useCallback(async () => {
     setLoadingRecipe(true)
-    const today = getTodayUTCDateString()
+    const today = getTodayAESTDateString()
     const { data: recipe, error } = await supabase
       .from('recipes')
       .select('*')
@@ -169,19 +190,33 @@ export const useGame = () => {
     const normalizedGuess = ingredient.toLowerCase().trim()
     const normalizedIngredients = gameState.currentRecipe.ingredients.map(i => i.toLowerCase())
 
-    if (normalizedIngredients.includes(normalizedGuess)) {
-      // Correct guess
-      const newCorrectIngredients = [...gameState.correctIngredients, normalizedGuess]
-      const newGuessedIngredients = [...gameState.guessedIngredients, normalizedGuess]
+    // If already guessed, do nothing
+    if (gameState.guessedIngredients.includes(normalizedGuess)) {
+      setInputValue('')
+      return
+    }
 
-      setGameState(prev => ({
-        ...prev,
-        correctIngredients: newCorrectIngredients,
-        guessedIngredients: newGuessedIngredients,
-        // attempts is NOT incremented for correct guesses
-        gameStatus: newCorrectIngredients.length === gameState.currentRecipe!.ingredients.length ? 'won' : 'playing',
-        endTime: newCorrectIngredients.length === gameState.currentRecipe!.ingredients.length ? Date.now() : undefined,
-      }))
+    if (normalizedIngredients.includes(normalizedGuess)) {
+      // Correct guess, only if not already in correctIngredients
+      if (!gameState.correctIngredients.includes(normalizedGuess)) {
+        const newCorrectIngredients = [...gameState.correctIngredients, normalizedGuess]
+        const newGuessedIngredients = [...gameState.guessedIngredients, normalizedGuess]
+
+        setGameState(prev => ({
+          ...prev,
+          correctIngredients: newCorrectIngredients,
+          guessedIngredients: newGuessedIngredients,
+          // attempts is NOT incremented for correct guesses
+          gameStatus: newCorrectIngredients.length === gameState.currentRecipe!.ingredients.length ? 'won' : 'playing',
+          endTime: newCorrectIngredients.length === gameState.currentRecipe!.ingredients.length ? Date.now() : undefined,
+        }))
+      } else {
+        // Already in correctIngredients, just add to guessedIngredients if not present (shouldn't happen, but for safety)
+        setGameState(prev => ({
+          ...prev,
+          guessedIngredients: prev.guessedIngredients.includes(normalizedGuess) ? prev.guessedIngredients : [...prev.guessedIngredients, normalizedGuess],
+        }))
+      }
     } else {
       // Incorrect guess
       setGameState(prev => ({

@@ -84,14 +84,31 @@ export default function Home() {
 
   function getTimeToNext8amAEST() {
     const now = new Date();
-    const nowAEST = new Date(now.getTime() + 10 * 60 * 60 * 1000);
-    let next8am = new Date(nowAEST);
-    next8am.setHours(8, 0, 0, 0);
-    if (nowAEST.getHours() >= 8) {
-      next8am.setDate(next8am.getDate() + 1);
+    // Current UTC time
+    const nowUTC = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds(),
+      now.getUTCMilliseconds()
+    );
+    // Next 8am AEST in UTC: that's 22:00 UTC of the previous day
+    const nowInAEST = new Date(nowUTC + 10 * 60 * 60 * 1000);
+    let next8amAEST = new Date(Date.UTC(
+      nowInAEST.getUTCFullYear(),
+      nowInAEST.getUTCMonth(),
+      nowInAEST.getUTCDate(),
+      8, 0, 0, 0
+    ));
+    if (nowInAEST.getHours() >= 8) {
+      // If it's past 8am AEST, go to next day
+      next8amAEST.setUTCDate(next8amAEST.getUTCDate() + 1);
     }
-    const next8amUTC = new Date(next8am.getTime() - 10 * 60 * 60 * 1000);
-    return next8amUTC.getTime() - now.getTime();
+    // Convert next8amAEST back to UTC timestamp
+    const next8amAEST_utc = next8amAEST.getTime() - 10 * 60 * 60 * 1000;
+    return next8amAEST_utc - nowUTC;
   }
   function formatAestTime(ms: number) {
     const totalSeconds = Math.floor(ms / 1000);
@@ -214,10 +231,10 @@ export default function Home() {
       setLastGuessCorrect(undefined);
     }, 500);
   };
-  const [timeLeft, setTimeLeft] = useState(getTimeToNextUTCMidnight());
+  const [timeLeft, setTimeLeft] = useState(getTimeToNext8amAEST());
   useEffect(() => {
     const interval = setInterval(() => {
-      setTimeLeft(getTimeToNextUTCMidnight());
+      setTimeLeft(getTimeToNext8amAEST());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -458,6 +475,7 @@ export default function Home() {
                 lastGuessedIngredient={lastGuessedIngredient}
                 lastGuessCorrect={lastGuessCorrect}
                 hintedIngredient={hintedIngredient ?? undefined}
+                gameStatus={gameState.gameStatus}
               />
             </div>
           )}

@@ -97,7 +97,7 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
             <span className="text-gray-400">Recipes will be added here as you complete them</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 overflow-y-auto pr-2" style={{ maxHeight: '40vh' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 overflow-y-auto pr-2" style={{ maxHeight: '40vh', minHeight: '10vh' }}>
             {filteredRecipes.map((recipe, index) => (
               <button
                 key={index}
@@ -128,7 +128,7 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
                 <div className="text-sm text-gray-500 mb-1">
                   <div>Serves: {recipe.servings || 4}</div>
                   <div>Time: {recipe.cookTime || '30'} minutes</div>
-                  <div>Cuisine: {recipe.category || 'Unknown'}</div>
+                  <div>Cuisine: {recipe.category ? recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1) : 'Unknown'}</div>
                   <div>Difficulty: {recipe.difficulty ? recipe.difficulty.charAt(0).toUpperCase() + recipe.difficulty.slice(1) : 'Unknown'}</div>
                 </div>
                 {/* Metallic shine effect */}
@@ -146,7 +146,7 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
         {/* Recipe Details Pop-out */}
         {selectedRecipe && (
           <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50" onClick={e => e.target === e.currentTarget && setSelectedRecipe(null)}>
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4 border border-gray-200 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4 border border-gray-200 dark:border-gray-800" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{selectedRecipe.emoji}</span>
@@ -170,7 +170,7 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
                   {selectedRecipe.description ? selectedRecipe.description : <span className="text-gray-400">No description</span>}
                 </div>
                 {/* Servings and Time */}
-                <div className="mb-2 text-gray-500 text-sm flex items-center gap-3">
+                <div className="mb-2 text-gray-500 text-sm flex items-center gap-3 justify-center w-full">
                   <Users className="w-4 h-4" />
                   <span>Serves {selectedRecipe.servings || 4}</span>
                   <Clock className="w-4 h-4 ml-4" />
@@ -178,7 +178,7 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
                   {/* Cuisine */}
                   <span className="ml-4 flex items-center gap-1">
                     <span role="img" aria-label="Cuisine">🍽️</span>
-                    <span>{selectedRecipe.category || 'Unknown'}</span>
+                    <span>{selectedRecipe.category ? selectedRecipe.category.charAt(0).toUpperCase() + selectedRecipe.category.slice(1) : 'Unknown'}</span>
                   </span>
                   {/* Difficulty */}
                   <span className="ml-4 flex items-center gap-1">

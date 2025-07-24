@@ -93,14 +93,27 @@ export const Header: React.FC<HeaderProps> = ({
   // Timer for next recipe (AEST 8am)
   const getTimeToNext8amAEST = () => {
     const now = new Date();
-    const nowAEST = new Date(now.getTime() + 10 * 60 * 60 * 1000);
-    let next8am = new Date(nowAEST);
-    next8am.setHours(8, 0, 0, 0);
-    if (nowAEST.getHours() >= 8) {
-      next8am.setDate(next8am.getDate() + 1);
+    const nowUTC = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds(),
+      now.getUTCMilliseconds()
+    );
+    const nowInAEST = new Date(nowUTC + 10 * 60 * 60 * 1000);
+    let next8amAEST = new Date(Date.UTC(
+      nowInAEST.getUTCFullYear(),
+      nowInAEST.getUTCMonth(),
+      nowInAEST.getUTCDate(),
+      8, 0, 0, 0
+    ));
+    if (nowInAEST.getHours() >= 8) {
+      next8amAEST.setUTCDate(next8amAEST.getUTCDate() + 1);
     }
-    const next8amUTC = new Date(next8am.getTime() - 10 * 60 * 60 * 1000);
-    return next8amUTC.getTime() - now.getTime();
+    const next8amAEST_utc = next8amAEST.getTime() - 10 * 60 * 60 * 1000;
+    return next8amAEST_utc - nowUTC;
   };
   const formatAestTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
