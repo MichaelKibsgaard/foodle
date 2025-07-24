@@ -78,19 +78,19 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             {loading ? 'Loading...' : mode === 'login' ? 'Log In' : 'Sign Up'}
           </button>
         </form>
-        <div className="mt-4 text-sm text-gray-500">
+        <div className="mt-4 text-sm text-gray-500 dark:text-gray-200">
           {mode === 'login' ? (
             <>Don't have an account?{' '}
-              <button className="text-green-600 hover:text-green-700 font-bold transition" onClick={() => setMode('signup')}>Sign Up</button>
+              <button className="text-green-600 hover:text-green-400 font-bold transition dark:text-white dark:hover:text-green-300" onClick={() => setMode('signup')}>Sign Up</button>
             </>
           ) : (
             <>Already have an account?{' '}
-              <button className="text-green-600 hover:text-green-700 font-bold transition" onClick={() => setMode('login')}>Log In</button>
+              <button className="text-green-600 hover:text-green-400 font-bold transition dark:text-white dark:hover:text-green-300" onClick={() => setMode('login')}>Log In</button>
             </>
           )}
         </div>
-        {error && <div className="text-red-500 text-center mt-2">{error}</div>}
-        {message && <div className="text-green-600 text-center mt-2">{message}</div>}
+        {error && <div className="text-red-500 text-center mt-2 dark:text-red-400">{error}</div>}
+        {message && <div className="text-green-600 text-center mt-2 dark:text-green-300">{message}</div>}
       </div>
     </div>
   );
