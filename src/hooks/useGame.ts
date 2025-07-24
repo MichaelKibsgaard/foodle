@@ -1,28 +1,23 @@
 import { useState, useEffect, useCallback } from 'react'
 import { GameState, Recipe, Hint } from '@/types/game'
 import { supabase } from '@/lib/supabase'
+import { getOrCreateGuestId } from '@/lib/gameData';
 
 const MAX_ATTEMPTS = 5
 const MAX_HINTS = 3
 
 function getTodayAESTDateString() {
   const now = new Date();
+  // Get current UTC time in ms
+  const nowUTC = now.getTime();
   // Convert to AEST (UTC+10, no DST)
-  const nowUTC = Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    now.getUTCHours(),
-    now.getUTCMinutes(),
-    now.getUTCSeconds(),
-    now.getUTCMilliseconds()
-  );
-  const nowInAEST = new Date(nowUTC + 10 * 60 * 60 * 1000);
-  // If before 8am AEST, use previous day
-  let year = nowInAEST.getUTCFullYear();
-  let month = nowInAEST.getUTCMonth();
-  let date = nowInAEST.getUTCDate();
-  if (nowInAEST.getHours() < 8) {
+  const nowAEST = new Date(nowUTC + 10 * 60 * 60 * 1000);
+  // If before 8am AEST, use previous day; otherwise, use today
+  let year = nowAEST.getUTCFullYear();
+  let month = nowAEST.getUTCMonth();
+  let date = nowAEST.getUTCDate();
+  if (nowAEST.getUTCHours() < 8) {
+    // Go to previous day in AEST
     const prev = new Date(Date.UTC(year, month, date - 1));
     year = prev.getUTCFullYear();
     month = prev.getUTCMonth();
@@ -283,11 +278,11 @@ export const useGame = () => {
     const saveStats = async () => {
       if (!gameState.currentRecipe || !['won', 'lost'].includes(gameState.gameStatus)) return;
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      // Save game result for both win and loss
+      const guestId = getOrCreateGuestId();
       await supabase.from('game_results').insert([
         {
-          user_id: user.id,
+          user_id: user ? user.id : null,
+          guest_id: user ? null : guestId,
           recipe_id: gameState.currentRecipe.id,
           recipe_name: gameState.currentRecipe.name,
           attempts: gameState.attempts,
@@ -301,7 +296,8 @@ export const useGame = () => {
       let { data: stats } = await supabase
         .from('user_stats')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user ? user.id : null)
+        .eq('guest_id', user ? null : guestId)
         .single();
       const won = gameState.gameStatus === 'won';
       const today = new Date();
@@ -353,7 +349,8 @@ export const useGame = () => {
         if (won) streakUpdatedToday = true;
       }
       await supabase.from('user_stats').upsert({
-        user_id: user.id,
+        user_id: user ? user.id : null,
+        guest_id: user ? null : guestId,
         ...newStats,
       });
       // Optionally, you can set a state here to trigger animation in the header
@@ -361,7 +358,7 @@ export const useGame = () => {
     };
     saveStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState.gameStatus]);
+  }, [gameState.gameStatus, supabase]);
 
   // Start a practice game with a given recipe
   const startPracticeGame = useCallback((recipe: Recipe) => {

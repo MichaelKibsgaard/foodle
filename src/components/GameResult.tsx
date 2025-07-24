@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from 'react'
 import { Trophy, Clock, RotateCcw, Share2 } from 'lucide-react'
 import { Recipe } from '@/types/game'
+import jsPDF from 'jspdf';
 
 interface GameResultProps {
   gameStatus: 'won' | 'lost'
@@ -148,6 +149,68 @@ export const GameResult: React.FC<GameResultProps> = ({
         <div className="glass-panel inline-block px-4 py-2 rounded-lg">
           <p className="text-sm text-wordle-absent">Next recipe in 24 hours</p>
         </div>
+        <button
+          className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm transition"
+          onClick={async () => {
+            try {
+              const doc = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
+              const pageWidth = doc.internal.pageSize.getWidth();
+              const pageHeight = doc.internal.pageSize.getHeight();
+              let y = 36;
+              // Title
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(22);
+              doc.setTextColor(34,197,94);
+              doc.text(recipe.name || 'Recipe', pageWidth / 2, y, { align: 'center' });
+              y += 10;
+              // Ingredients/Instructions
+              const sectionStartY = y + 10;
+              const sectionHeight = pageHeight - sectionStartY - 48;
+              doc.setFillColor(245, 255, 245);
+              doc.rect(24, sectionStartY, (pageWidth / 2) - 32, sectionHeight, 'F');
+              doc.rect(pageWidth / 2 + 8, sectionStartY, (pageWidth / 2) - 32, sectionHeight, 'F');
+              // Ingredients (left)
+              let ingY = sectionStartY + 20;
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(14);
+              doc.setTextColor(34,197,94);
+              doc.text('Ingredients', 36, ingY);
+              ingY += 14;
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(11);
+              doc.setTextColor(60,60,60);
+              recipe.ingredients.forEach((ing: string) => {
+                doc.text(`- ${ing}`, 40, ingY);
+                ingY += 12;
+              });
+              // Instructions (right) - not available, so show guesses
+              let instrY = sectionStartY + 20;
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(14);
+              doc.setTextColor(34,197,94);
+              doc.text('Your Guesses', pageWidth / 2 + 20, instrY);
+              instrY += 14;
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(11);
+              doc.setTextColor(60,60,60);
+              guessedWords.forEach((word: string) => {
+                doc.text(word, pageWidth / 2 + 24, instrY);
+                instrY += 12;
+              });
+              // Foodle logo/text bottom right
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(10);
+              doc.setTextColor(180,180,180);
+              doc.text('Foodle', pageWidth - 40, pageHeight - 24);
+              doc.save(`${recipe.name || 'recipe'}.pdf`);
+            } catch (err) {
+              alert('Export to PDF failed. See console for details.');
+              console.error('Export to PDF error:', err);
+            }
+          }}
+        >
+          Export to PDF
+        </button>
       </div>
     </div>
   );

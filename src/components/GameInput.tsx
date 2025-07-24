@@ -82,10 +82,19 @@ export const GameInput: React.FC<GameInputProps> = ({
             <button
               type="submit"
               disabled={disabled || !value.trim()}
-              className="glass-button game-input-stats-btn rounded-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+              className="game-input-stats-btn rounded-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+              style={{
+                background: 'linear-gradient(270deg, #ff80b5, #ffd580, #ff80b5, #fffbe7) !important',
+                backgroundSize: '400% 400% !important',
+                animation: 'btn-roll 12s linear infinite !important',
+                color: '#fff !important',
+                fontWeight: 700,
+                letterSpacing: '0.03em',
+                border: 'none',
+              }}
               aria-label="Submit guess"
             >
-              <Send className="w-4 h-4 text-wordle-text" />
+              HELLO
             </button>
             <button
               type="button"
@@ -104,12 +113,11 @@ export const GameInput: React.FC<GameInputProps> = ({
         {/* Hint Button */}
         <button
           type="button"
+          className="bg-gray-200 text-gray-700 flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-300 font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent-pink"
           onClick={() => { onHint(); playSound('hint'); }}
           disabled={disabled || hintsUsed >= maxHints}
-          className="glass-button flex items-center space-x-2 px-4 py-2 rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-wordle-text font-semibold focus:outline-none focus:ring-2 focus:ring-accent-pink"
           aria-label="Get a hint"
         >
-          <Lightbulb className="w-4 h-4" />
           <span>Hint ({hintsUsed}/{maxHints})</span>
         </button>
         {/* Instructions */}

@@ -9,12 +9,13 @@ import { useGame } from '@/hooks/useGame';
 import { AuthModal } from '@/components/AuthModal';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import { getNextUnusedRecipes, markRecipeAsUsedToday } from '@/lib/gameData';
+import { getNextUnusedRecipes, markRecipeAsUsedToday, getTimeToNext8amAEST } from '@/lib/gameData';
 import { GuessHistory } from '@/components/GuessHistory';
 import Confetti from 'react-confetti';
 import { CookbookModal } from '@/components/CookbookModal';
 import { StatisticsModal } from '@/components/StatisticsModal';
 import { RecipeSubmitModal } from '@/components/RecipeSubmitModal';
+import { jsPDF } from 'jspdf';
 
 // Modern, clean modal for How To Play
 const HowToPlayModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
@@ -31,12 +32,6 @@ const HowToPlayModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
     </div>
   </div>
 );
-
-function getTimeToNextUTCMidnight() {
-  const now = new Date();
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-  return next.getTime() - now.getTime();
-}
 
 function formatTime(ms: number) {
   const totalSeconds = Math.floor(ms / 1000);
@@ -82,34 +77,7 @@ export default function Home() {
     return () => { listener?.subscription.unsubscribe(); };
   }, []);
 
-  function getTimeToNext8amAEST() {
-    const now = new Date();
-    // Current UTC time
-    const nowUTC = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-      now.getUTCHours(),
-      now.getUTCMinutes(),
-      now.getUTCSeconds(),
-      now.getUTCMilliseconds()
-    );
-    // Next 8am AEST in UTC: that's 22:00 UTC of the previous day
-    const nowInAEST = new Date(nowUTC + 10 * 60 * 60 * 1000);
-    let next8amAEST = new Date(Date.UTC(
-      nowInAEST.getUTCFullYear(),
-      nowInAEST.getUTCMonth(),
-      nowInAEST.getUTCDate(),
-      8, 0, 0, 0
-    ));
-    if (nowInAEST.getHours() >= 8) {
-      // If it's past 8am AEST, go to next day
-      next8amAEST.setUTCDate(next8amAEST.getUTCDate() + 1);
-    }
-    // Convert next8amAEST back to UTC timestamp
-    const next8amAEST_utc = next8amAEST.getTime() - 10 * 60 * 60 * 1000;
-    return next8amAEST_utc - nowUTC;
-  }
+  // (Removed local getTimeToNext8amAEST)
   function formatAestTime(ms: number) {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -409,26 +377,26 @@ export default function Home() {
             <span>{gameState.currentRecipe?.name || 'No food of the day set!'}</span>
           </div>
           {/* Photo Placeholder or Recipe Image */}
-          {gameState.currentRecipe?.photo_url ? (
-            <img
-              src={gameState.currentRecipe.photo_url}
-              alt={gameState.currentRecipe.name + ' photo'}
-              className="w-48 h-36 object-cover rounded-2xl mb-1 border-2 border-gray-100 dark:border-gray-800 shadow-inner"
-            />
-          ) : gameState.currentRecipe?.recipe_image ? (
-            <img
-              src={gameState.currentRecipe.recipe_image}
-              alt={gameState.currentRecipe.name + ' photo'}
-              className="w-48 h-36 object-cover rounded-2xl mb-1 border-2 border-gray-100 dark:border-gray-800 shadow-inner"
-            />
-          ) : (
-            <div className="bg-gray-200 dark:bg-gray-800 w-48 h-36 rounded-2xl mb-1 flex items-center justify-center text-gray-400 text-2xl border-2 border-gray-100 dark:border-gray-800 shadow-inner">
-              Photo
-            </div>
-          )}
+          {(() => {
+            const img = gameState.currentRecipe?.photo_url || gameState.currentRecipe?.image_url || gameState.currentRecipe?.recipe_image;
+            if (img) {
+              return (
+                <img
+                  src={img}
+                  alt={gameState.currentRecipe.name + ' photo'}
+                  className="w-48 h-36 object-cover rounded-2xl mb-1 border-2 border-gray-100 dark:border-gray-800 shadow-inner"
+                />
+              );
+            }
+            return (
+              <div className="bg-gray-200 dark:bg-gray-800 w-48 h-36 rounded-2xl mb-1 flex items-center justify-center text-gray-400 text-2xl border-2 border-gray-100 dark:border-gray-800 shadow-inner">
+                Photo
+              </div>
+            );
+          })()}
           {/* Username and Instagram link row */}
           {gameState.currentRecipe && (
-            <div className="flex justify-center items-center gap-2 text-xs mb-2 mt-2">
+            <div className="flex justify-center items-center gap-2 text-xs mb-4 space-x-4">
               {/* Username */}
               {gameState.currentRecipe.username && gameState.currentRecipe.username.trim() ? (
                 <span className="flex items-center font-semibold text-green-700 dark:text-green-400">
@@ -491,14 +459,21 @@ export default function Home() {
             <span className="text-xs text-gray-500 dark:text-gray-400">Hints Used</span>
             <span className="font-bold text-base text-gray-800 dark:text-white">{gameState.hintsUsed} / {maxHints}</span>
           </div>
-          <div className="flex flex-col items-center flex-1 min-w-0">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Ingredients Left</span>
-            <span className="font-bold text-base text-gray-800 dark:text-white">{gameState.currentRecipe ? gameState.currentRecipe.ingredients.length - gameState.correctIngredients.length : '-'}</span>
-          </div>
+          {gameState.currentRecipe ? (
+            <div className="flex flex-col items-center flex-1 min-w-0">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Ingredients Left</span>
+              <span className="font-bold text-base text-gray-800 dark:text-white">{gameState.currentRecipe.ingredients.length - gameState.correctIngredients.length}</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center flex-1 min-w-0">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Ingredients Left</span>
+              <span className="font-bold text-base text-gray-800 dark:text-white">-</span>
+            </div>
+          )}
           <div className="flex flex-col items-center flex-1 min-w-0">
             <button
               type="button"
-              className="stats-button btn-outline px-3 py-1 rounded-xl transition-all duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-pink text-sm w-full"
+              className="bg-gray-200 text-gray-700 px-3 py-1 rounded-xl transition-all duration-150 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-accent-pink text-sm w-full disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={typeof handleHint === 'function' ? handleHint : undefined}
               aria-label="Get a hint"
               disabled={gameState.hintsUsed >= maxHints && !extraHintUnlocked}
@@ -521,7 +496,16 @@ export default function Home() {
             />
             <button
               type="submit"
-              className="btn-primary px-10 py-4 rounded-xl text-lg transition-all duration-150 hover:scale-105"
+              className="px-10 py-4 rounded-xl text-lg transition-all duration-150 hover:scale-105 font-bold shadow animate-gradient-move"
+              style={{
+                background: 'linear-gradient(270deg, #ff80b5, #ffd580, #ff80b5, #fffbe7)',
+                backgroundSize: '400% 400%',
+                color: '#fff',
+                fontWeight: 700,
+                letterSpacing: '0.03em',
+                borderRadius: '1rem',
+                boxShadow: '0 2px 12px 0 rgba(0,0,0,0.07)',
+              }}
               disabled={gameState.gameStatus !== 'playing'}
             >
               Submit
@@ -539,7 +523,7 @@ export default function Home() {
               <span className="text-xl font-bold text-gray-800 dark:text-white">{gameState.currentRecipe.name}</span>
             </div>
             {/* Username and link row */}
-            <div className="flex justify-center items-center gap-2 text-xs mb-2">
+            <div className="flex justify-center items-center gap-2 text-xs mb-4 space-x-4">
               {/* Username */}
               {gameState.currentRecipe.username && gameState.currentRecipe.username.trim() ? (
                 <span className="flex items-center font-semibold text-green-700 dark:text-green-400">
@@ -571,47 +555,166 @@ export default function Home() {
               )}
             </div>
             {/* Serves, Time, Cuisine, Difficulty row */}
-            <div className="mb-2 text-gray-500 text-sm flex items-center gap-3">
+            <div className="mb-4 text-gray-500 text-sm flex flex-wrap items-center gap-4 space-x-4 space-y-2">
               <span className="flex items-center gap-1"><svg className="inline w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6 5.87v-2a4 4 0 00-3-3.87m6 5.87v-2a4 4 0 00-3-3.87" /></svg>Serves {gameState.currentRecipe.servings || 4}</span>
               <span className="flex items-center gap-1"><svg className="inline w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>{gameState.currentRecipe.cookTime || '30'} min</span>
               <span className="ml-4 flex items-center gap-1"><span role="img" aria-label="Cuisine">🍽️</span>{gameState.currentRecipe.category ? gameState.currentRecipe.category.charAt(0).toUpperCase() + gameState.currentRecipe.category.slice(1) : 'Unknown'}</span>
               <span className="ml-4 flex items-center gap-1"><span role="img" aria-label="Difficulty">🎯</span>{gameState.currentRecipe.difficulty ? gameState.currentRecipe.difficulty.charAt(0).toUpperCase() + gameState.currentRecipe.difficulty.slice(1) : 'Unknown'}</span>
             </div>
-            {gameState.currentRecipe.photo_url && (
-              <img src={gameState.currentRecipe.photo_url} alt={gameState.currentRecipe.name + ' photo'} className="rounded-xl max-h-32 object-cover mb-2" />
-            )}
+            {gameState.currentRecipe && (() => {
+              const img = gameState.currentRecipe.photo_url || gameState.currentRecipe.image_url || gameState.currentRecipe.recipe_image;
+              if (img) {
+                return <img src={img} alt={gameState.currentRecipe.name + ' photo'} className="rounded-xl max-h-32 object-cover mb-2" />;
+              }
+              return null;
+            })()}
             <div className="w-full flex flex-col md:flex-row gap-6">
               <div className="flex-1">
-                <div className="font-semibold mb-1 text-green-700 dark:text-green-300">Ingredients:</div>
+                <div className="font-semibold mb-1 text-green-700 dark:text-green-300 mt-6">Ingredients:</div>
                 {Array.isArray(gameState.currentRecipe.ingredients_long) && gameState.currentRecipe.ingredients_long.length > 0 ? (
-                  <ul className="list-disc list-inside mb-2 text-gray-700 dark:text-gray-200">
+                  <ul className="list-disc list-inside mb-2 text-gray-700 dark:text-gray-200 text-sm">
                     {gameState.currentRecipe.ingredients_long.map((ing: string, idx: number) => (
                       <li key={idx}>{ing}</li>
                     ))}
                   </ul>
                 ) : typeof gameState.currentRecipe.ingredients_long === 'string' && gameState.currentRecipe.ingredients_long.trim().length > 0 ? (
-                  <div className="mb-2 whitespace-pre-line text-gray-700 dark:text-gray-200">{gameState.currentRecipe.ingredients_long}</div>
+                  <div className="mb-2 whitespace-pre-line text-gray-700 dark:text-gray-200 text-sm">{gameState.currentRecipe.ingredients_long}</div>
                 ) : Array.isArray(gameState.currentRecipe.ingredients) && gameState.currentRecipe.ingredients.length > 0 ? (
-                  <ul className="list-disc list-inside mb-2 text-gray-700 dark:text-gray-200">
+                  <ul className="list-disc list-inside mb-2 text-gray-700 dark:text-gray-200 text-sm">
                     {gameState.currentRecipe.ingredients.map((ing: string, idx: number) => (
                       <li key={idx}>{ing}</li>
                     ))}
                   </ul>
                 ) : (
-                  <div className="text-gray-400">No ingredients</div>
+                  <div className="text-gray-400 text-sm">No ingredients</div>
                 )}
               </div>
               <div className="flex-1">
-                <div className="font-semibold mb-1 text-green-700 dark:text-green-300">Instructions:</div>
+                <div className="font-semibold mb-1 text-green-700 dark:text-green-300 mt-6">Instructions:</div>
                 {gameState.currentRecipe.instructions_long ? (
-                  <div className="text-gray-700 dark:text-gray-200 whitespace-pre-line">{gameState.currentRecipe.instructions_long}</div>
+                  <div className="text-gray-700 dark:text-gray-200 whitespace-pre-line text-sm">{gameState.currentRecipe.instructions_long}</div>
                 ) : gameState.currentRecipe.instructions ? (
-                  <div className="text-gray-700 dark:text-gray-200 whitespace-pre-line">{gameState.currentRecipe.instructions}</div>
+                  <div className="text-gray-700 dark:text-gray-200 whitespace-pre-line text-sm">{gameState.currentRecipe.instructions}</div>
                 ) : (
-                  <div className="text-gray-400">No instructions</div>
+                  <div className="text-gray-400 text-sm">No instructions</div>
                 )}
               </div>
             </div>
+            <button
+              className="mt-6 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm transition"
+              onClick={async () => {
+                try {
+                  const recipe = gameState.currentRecipe;
+                  const doc = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
+                  const pageWidth = doc.internal.pageSize.getWidth();
+                  const pageHeight = doc.internal.pageSize.getHeight();
+                  let y = 36;
+                  // Title
+                  doc.setFont('helvetica', 'bold');
+                  doc.setFontSize(22);
+                  doc.setTextColor(34,197,94);
+                  doc.text(recipe.name || 'Recipe', pageWidth / 2, y, { align: 'center' });
+                  y += 10;
+                  // Photo
+                  let photoHeight = 0;
+                  if (recipe.photo_url || recipe.image_url || recipe.recipe_image) {
+                    try {
+                      const imgUrl = recipe.photo_url || recipe.image_url || recipe.recipe_image;
+                      const img = new window.Image();
+                      img.crossOrigin = 'Anonymous';
+                      img.src = imgUrl;
+                      await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                      });
+                      const imgWidth = 120;
+                      photoHeight = 80;
+                      doc.addImage(img, 'JPEG', (pageWidth - imgWidth) / 2, y, imgWidth, photoHeight);
+                    } catch (e) {
+                      // ignore image errors
+                    }
+                  } else {
+                    // Placeholder
+                    doc.setFillColor(220, 220, 220);
+                    doc.rect((pageWidth - 120) / 2, y, 120, 80, 'F');
+                    doc.setFontSize(12);
+                    doc.setTextColor(180,180,180);
+                    doc.text('No photo', pageWidth / 2, y + 40, { align: 'center' });
+                  }
+                  y += photoHeight + 16;
+                  // Description
+                  doc.setFont('helvetica', 'normal');
+                  doc.setFontSize(12);
+                  doc.setTextColor(60,60,60);
+                  const descLines = doc.splitTextToSize(recipe.description || 'No description', pageWidth - 60);
+                  doc.text(descLines, pageWidth / 2, y, { align: 'center' });
+                  y += descLines.length * 14 + 2;
+                  // Username and Servings
+                  doc.setFont('helvetica', 'italic');
+                  doc.setFontSize(11);
+                  doc.setTextColor(120,120,120);
+                  let metaParts = [];
+                  if (recipe.username) metaParts.push(`By: ${recipe.username}`);
+                  if (recipe.servings) metaParts.push(`Serves: ${recipe.servings}`);
+                  const metaText = metaParts.join('   ');
+                  if (metaText) {
+                    doc.text(metaText, pageWidth / 2, y, { align: 'center' });
+                    y += 16;
+                  }
+                  // Ingredients/instructions section
+                  const sectionStartY = y;
+                  const sectionHeight = pageHeight - sectionStartY - 48;
+                  doc.setFillColor(245, 255, 245);
+                  doc.rect(24, sectionStartY, (pageWidth / 2) - 32, sectionHeight, 'F');
+                  doc.rect(pageWidth / 2 + 8, sectionStartY, (pageWidth / 2) - 32, sectionHeight, 'F');
+                  // Ingredients (left)
+                  let ingY = sectionStartY + 20;
+                  doc.setFont('helvetica', 'bold');
+                  doc.setFontSize(14);
+                  doc.setTextColor(34,197,94);
+                  doc.text('Ingredients', 36, ingY);
+                  ingY += 14;
+                  doc.setFont('helvetica', 'normal');
+                  doc.setFontSize(11);
+                  doc.setTextColor(60,60,60);
+                  const ingredients = Array.isArray(recipe.ingredients_long) && recipe.ingredients_long.length > 0
+                    ? recipe.ingredients_long
+                    : typeof recipe.ingredients_long === 'string' && recipe.ingredients_long.trim().length > 0
+                      ? recipe.ingredients_long.split('\n')
+                      : Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0
+                        ? recipe.ingredients
+                        : [];
+                  ingredients.forEach((ing: string) => {
+                    doc.text(`- ${ing}`, 40, ingY);
+                    ingY += 12;
+                  });
+                  // Instructions (right)
+                  let instrY = sectionStartY + 20;
+                  doc.setFont('helvetica', 'bold');
+                  doc.setFontSize(14);
+                  doc.setTextColor(34,197,94);
+                  doc.text('Instructions', pageWidth / 2 + 20, instrY);
+                  instrY += 14;
+                  doc.setFont('helvetica', 'normal');
+                  doc.setFontSize(11);
+                  doc.setTextColor(60,60,60);
+                  const instructions = recipe.instructions_long || recipe.instructions || '';
+                  const instrLines = doc.splitTextToSize(instructions, (pageWidth / 2) - 48);
+                  doc.text(instrLines, pageWidth / 2 + 24, instrY);
+                  // Foodle logo/text bottom right
+                  doc.setFont('helvetica', 'bold');
+                  doc.setFontSize(10);
+                  doc.setTextColor(180,180,180);
+                  doc.text('Foodle', pageWidth - 40, pageHeight - 24);
+                  doc.save(`${recipe.name || 'recipe'}.pdf`);
+                } catch (err) {
+                  alert('Export to PDF failed. See console for details.');
+                  console.error('Export to PDF error:', err);
+                }
+              }}
+            >
+              Export to PDF
+            </button>
           </div>
         </div>
       )}

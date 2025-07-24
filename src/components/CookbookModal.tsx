@@ -1,8 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Search, Clock, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface CookbookModalProps {
   onClose: () => void;
@@ -13,6 +15,7 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecipe, setSelectedRecipe] = useState<any | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCompletedRecipes = async () => {
@@ -146,16 +149,131 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
         {/* Recipe Details Pop-out */}
         {selectedRecipe && (
           <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50" onClick={e => e.target === e.currentTarget && setSelectedRecipe(null)}>
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4 border border-gray-200 dark:border-gray-800" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+            <div ref={modalRef} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4 border border-gray-200 dark:border-gray-800 relative" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{selectedRecipe.emoji}</span>
                   <h3 className="text-xl font-bold text-gray-800 dark:text-white" style={{ fontFamily: 'Inter, sans-serif', textShadow: 'none' }}>{selectedRecipe.name}</h3>
                 </div>
-                <button onClick={() => setSelectedRecipe(null)} className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-accent-pink" aria-label="Close recipe details">
+                <button onClick={() => setSelectedRecipe(null)} className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-accent-pink no-export" aria-label="Close recipe details">
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
+              <button
+                className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm transition no-export"
+                onClick={async () => {
+                  try {
+                    const recipe = selectedRecipe;
+                    const doc = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    let y = 36;
+                    // Title
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(22);
+                    doc.setTextColor(34,197,94); // green accent
+                    doc.text(recipe.name || 'Recipe', pageWidth / 2, y, { align: 'center' });
+                    y += 10;
+                    // Photo
+                    let photoHeight = 0;
+                    if (recipe.photo_url) {
+                      try {
+                        const img = new Image();
+                        img.crossOrigin = 'Anonymous';
+                        img.src = recipe.photo_url;
+                        await new Promise((resolve, reject) => {
+                          img.onload = resolve;
+                          img.onerror = reject;
+                        });
+                        const imgWidth = 120;
+                        photoHeight = 80;
+                        doc.addImage(img, 'JPEG', (pageWidth - imgWidth) / 2, y, imgWidth, photoHeight);
+                      } catch (e) {
+                        // ignore image errors
+                      }
+                    } else {
+                      // Placeholder
+                      doc.setFillColor(220, 220, 220);
+                      doc.rect((pageWidth - 120) / 2, y, 120, 80, 'F');
+                      doc.setFontSize(12);
+                      doc.setTextColor(180,180,180);
+                      doc.text('No photo', pageWidth / 2, y + 40, { align: 'center' });
+                    }
+                    y += photoHeight + 16;
+                    // Description
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(12);
+                    doc.setTextColor(60,60,60);
+                    const descLines = doc.splitTextToSize(recipe.description || 'No description', pageWidth - 60);
+                    doc.text(descLines, pageWidth / 2, y, { align: 'center' });
+                    y += descLines.length * 14 + 2; // less gap after description
+                    // Username and Servings
+                    doc.setFont('helvetica', 'italic');
+                    doc.setFontSize(11);
+                    doc.setTextColor(120,120,120);
+                    let metaParts = [];
+                    if (recipe.username) metaParts.push(`By: ${recipe.username}`);
+                    if (recipe.servings) metaParts.push(`Serves: ${recipe.servings}`);
+                    const metaText = metaParts.join('   ');
+                    if (metaText) {
+                      doc.text(metaText, pageWidth / 2, y, { align: 'center' });
+                      y += 16;
+                    }
+                    // Calculate starting Y for ingredients/instructions just below meta
+                    const sectionStartY = y;
+                    const sectionHeight = pageHeight - sectionStartY - 48;
+                    // Section backgrounds
+                    doc.setFillColor(245, 255, 245);
+                    doc.rect(24, sectionStartY, (pageWidth / 2) - 32, sectionHeight, 'F');
+                    doc.rect(pageWidth / 2 + 8, sectionStartY, (pageWidth / 2) - 32, sectionHeight, 'F');
+                    // Ingredients (left)
+                    let ingY = sectionStartY + 20;
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(14);
+                    doc.setTextColor(34,197,94);
+                    doc.text('Ingredients', 36, ingY);
+                    ingY += 14;
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(11);
+                    doc.setTextColor(60,60,60);
+                    const ingredients = Array.isArray(recipe.ingredients_long) && recipe.ingredients_long.length > 0
+                      ? recipe.ingredients_long
+                      : typeof recipe.ingredients_long === 'string' && recipe.ingredients_long.trim().length > 0
+                        ? recipe.ingredients_long.split('\n')
+                        : Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0
+                          ? recipe.ingredients
+                          : [];
+                    ingredients.forEach((ing: string) => {
+                      doc.text(`- ${ing}`, 40, ingY);
+                      ingY += 12;
+                    });
+                    // Instructions (right)
+                    let instrY = sectionStartY + 20;
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(14);
+                    doc.setTextColor(34,197,94);
+                    doc.text('Instructions', pageWidth / 2 + 20, instrY);
+                    instrY += 14;
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(11);
+                    doc.setTextColor(60,60,60);
+                    const instructions = recipe.instructions_long || recipe.instructions || '';
+                    const instrLines = doc.splitTextToSize(instructions, (pageWidth / 2) - 48);
+                    doc.text(instrLines, pageWidth / 2 + 24, instrY);
+                    // Foodle logo/text bottom right
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(10);
+                    doc.setTextColor(180,180,180);
+                    doc.text('Foodle', pageWidth - 40, pageHeight - 24);
+                    doc.save(`${recipe.name || 'recipe'}.pdf`);
+                  } catch (err) {
+                    alert('Export to PDF failed. See console for details.');
+                    console.error('Export to PDF error:', err);
+                  }
+                }}
+              >
+                Export to PDF
+              </button>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 flex flex-col gap-4">
                 {/* Photo */}
                 {selectedRecipe.photo_url ? (
@@ -220,37 +338,38 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
                 </div>
                 {/* Ingredients */}
                 <div>
-                  <div className="font-semibold mb-1">Ingredients:</div>
+                  <div className="font-semibold mb-1 text-green-700 dark:text-green-300 mt-6">Ingredients:</div>
                   {Array.isArray(selectedRecipe.ingredients_long) && selectedRecipe.ingredients_long.length > 0 ? (
-                    <ul className="list-disc list-inside mb-2">
+                    <ul className="list-disc list-inside mb-2 text-gray-700 dark:text-gray-200 text-sm">
                       {selectedRecipe.ingredients_long.map((ing: string, idx: number) => (
                         <li key={idx}>{ing}</li>
                       ))}
                     </ul>
                   ) : typeof selectedRecipe.ingredients_long === 'string' && selectedRecipe.ingredients_long.trim().length > 0 ? (
-                    <div className="mb-2 whitespace-pre-line">{selectedRecipe.ingredients_long}</div>
+                    <div className="mb-2 whitespace-pre-line text-gray-700 dark:text-gray-200 text-sm">{selectedRecipe.ingredients_long}</div>
                   ) : Array.isArray(selectedRecipe.ingredients) && selectedRecipe.ingredients.length > 0 ? (
-                    <ul className="list-disc list-inside mb-2">
+                    <ul className="list-disc list-inside mb-2 text-gray-700 dark:text-gray-200 text-sm">
                       {selectedRecipe.ingredients.map((ing: string, idx: number) => (
                         <li key={idx}>{ing}</li>
                       ))}
                     </ul>
                   ) : (
-                    <div className="text-gray-400">No ingredients</div>
+                    <div className="text-gray-400 text-sm">No ingredients</div>
                   )}
                 </div>
                 {/* Instructions */}
                 <div>
-                  <div className="font-semibold mb-1">Instructions:</div>
+                  <div className="font-semibold mb-1 text-green-700 dark:text-green-300 mt-6">Instructions:</div>
                   {selectedRecipe.instructions_long ? (
-                    <div>{selectedRecipe.instructions_long}</div>
+                    <div className="text-gray-700 dark:text-gray-200 whitespace-pre-line text-sm">{selectedRecipe.instructions_long}</div>
                   ) : selectedRecipe.instructions ? (
-                    <div>{selectedRecipe.instructions}</div>
+                    <div className="text-gray-700 dark:text-gray-200 whitespace-pre-line text-sm">{selectedRecipe.instructions}</div>
                   ) : (
-                    <div className="text-gray-400">No instructions</div>
+                    <div className="text-gray-400 text-sm">No instructions</div>
                   )}
                 </div>
               </div>
+              <div className="absolute bottom-3 right-5 text-xs text-gray-400 select-none pointer-events-none foodle-footer" style={{fontFamily: 'Inter, sans-serif'}}>Foodle</div>
             </div>
           </div>
         )}

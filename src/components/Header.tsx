@@ -7,6 +7,7 @@ import { CookbookModal } from './CookbookModal'
 import { AuthModal } from './AuthModal';
 import { supabase } from '@/lib/supabase';
 import { useMemo, useEffect } from 'react';
+import { getTimeToNext8amAEST } from '@/lib/gameData';
 
 interface HeaderProps {
   gameStatus: 'playing' | 'won' | 'lost'
@@ -91,30 +92,6 @@ export const Header: React.FC<HeaderProps> = ({
   console.log('HEADER DEBUG:', { user, streak });
 
   // Timer for next recipe (AEST 8am)
-  const getTimeToNext8amAEST = () => {
-    const now = new Date();
-    const nowUTC = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-      now.getUTCHours(),
-      now.getUTCMinutes(),
-      now.getUTCSeconds(),
-      now.getUTCMilliseconds()
-    );
-    const nowInAEST = new Date(nowUTC + 10 * 60 * 60 * 1000);
-    let next8amAEST = new Date(Date.UTC(
-      nowInAEST.getUTCFullYear(),
-      nowInAEST.getUTCMonth(),
-      nowInAEST.getUTCDate(),
-      8, 0, 0, 0
-    ));
-    if (nowInAEST.getHours() >= 8) {
-      next8amAEST.setUTCDate(next8amAEST.getUTCDate() + 1);
-    }
-    const next8amAEST_utc = next8amAEST.getTime() - 10 * 60 * 60 * 1000;
-    return next8amAEST_utc - nowUTC;
-  };
   const formatAestTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -199,7 +176,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
             <button
               onClick={() => setShowCookbook(true)}
-              className="glass-button p-2 rounded-lg hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+              className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition focus:outline-none focus:ring-2 focus:ring-accent-pink"
               title="Cookbook"
               aria-label="Open cookbook"
             >
@@ -207,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               onClick={() => setShowStats(true)}
-              className="glass-button p-2 rounded-lg hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-pink"
+              className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition focus:outline-none focus:ring-2 focus:ring-accent-pink"
               title="Statistics"
               aria-label="Open statistics"
             >
@@ -218,7 +195,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handleSignOut}
-                  className="glass-button px-3 py-1 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-accent-pink"
+                  className="bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-accent-pink"
                   aria-label="Sign out"
                 >
                   Sign Out
@@ -227,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({
             ) : (
               <button
                 onClick={() => setShowAuth(true)}
-                className="glass-button px-3 py-1 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-accent-pink"
+                className="bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-accent-pink"
                 aria-label="Sign in"
               >
                 Sign In

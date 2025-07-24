@@ -138,4 +138,37 @@ export const markRecipeAsUsedToday = async (id: string) => {
     .update({ used_on: aestDate })
     .eq('id', id);
   return !error;
-}; 
+};
+
+// Returns ms until the next 8am AEST (UTC+10, no DST)
+export function getTimeToNext8amAEST() {
+  const now = new Date();
+  // Get current UTC time in ms
+  const nowUTC = now.getTime();
+  // Convert to AEST (UTC+10, no DST)
+  const nowAEST = new Date(nowUTC + 10 * 60 * 60 * 1000);
+  // Calculate next 8am AEST in UTC
+  let next8amAEST = new Date(Date.UTC(
+    nowAEST.getUTCFullYear(),
+    nowAEST.getUTCMonth(),
+    nowAEST.getUTCDate(),
+    8, 0, 0, 0
+  ));
+  if (nowAEST.getUTCHours() >= 8) {
+    // If it's 8am or later in AEST, next 8am is tomorrow
+    next8amAEST.setUTCDate(next8amAEST.getUTCDate() + 1);
+  }
+  // Convert next8amAEST (AEST) to UTC ms
+  const next8amAEST_utc = next8amAEST.getTime() - 10 * 60 * 60 * 1000;
+  const diff = next8amAEST_utc - nowUTC;
+  return diff > 0 ? diff : 0;
+}
+
+export function getOrCreateGuestId() {
+  let guestId = localStorage.getItem('foodle_guest_id');
+  if (!guestId) {
+    guestId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now();
+    localStorage.setItem('foodle_guest_id', guestId);
+  }
+  return guestId;
+} 
