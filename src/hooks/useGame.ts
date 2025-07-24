@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { GameState, Recipe, Hint } from '@/types/game'
 import { supabase } from '@/lib/supabase'
 import { getOrCreateGuestId } from '@/lib/gameData';
+import { distance as levenshteinDistance } from 'fastest-levenshtein';
 
 const MAX_ATTEMPTS = 5
 const MAX_HINTS = 3
@@ -185,8 +186,8 @@ export const useGame = () => {
     const normalizedGuess = ingredient.toLowerCase().trim()
     const normalizedIngredients = gameState.currentRecipe.ingredients.map(i => i.toLowerCase())
 
-    // Helper for plural/singular and substring matching
-    function isAdjacentMatch(guess: string, ingredient: string) {
+    // Helper for plural/singular, substring, and fuzzy matching
+    function isFuzzyMatch(guess: string, ingredient: string) {
       // Exact match
       if (guess === ingredient) return true;
       // Plural/singular (basic)
@@ -194,11 +195,15 @@ export const useGame = () => {
       if (ingredient.endsWith('s') && ingredient.slice(0, -1) === guess) return true;
       // Substring (multi-word)
       if (ingredient.includes(guess) || guess.includes(ingredient)) return true;
+      // Fuzzy: Levenshtein distance <= 2 or <= 30% of ingredient length (rounded up)
+      const dist = levenshteinDistance(guess, ingredient);
+      const threshold = Math.max(2, Math.ceil(ingredient.length * 0.3));
+      if (dist <= threshold) return true;
       return false;
     }
 
-    // Find a matching ingredient (adjacent logic)
-    const matchedIngredient = normalizedIngredients.find(ing => isAdjacentMatch(normalizedGuess, ing));
+    // Find a matching ingredient (fuzzy logic)
+    const matchedIngredient = normalizedIngredients.find(ing => isFuzzyMatch(normalizedGuess, ing));
 
     // If already guessed, do nothing
     if (gameState.guessedIngredients.includes(normalizedGuess)) {
