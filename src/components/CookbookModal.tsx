@@ -95,9 +95,9 @@ export const CookbookModal: React.FC<CookbookModalProps> = ({ onClose }) => {
         {/* Recipes Grid */}
         {loading ? (
           <div className="animate-pulse h-32 w-full rounded-lg bg-gray-100 dark:bg-gray-800" aria-busy="true" aria-live="polite"></div>
-        ) : filteredRecipes.length === 0 ? (
+        ) : recipes.length === 0 ? (
           <div className="bg-gray-50 dark:bg-gray-800 text-center py-8 rounded-lg">
-            <span className="text-gray-400">Recipes will be added here as you complete them</span>
+            <span className="text-gray-400">You must be signed in and have completed a recipe to see your cookbook.</span>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 overflow-y-auto pr-2" style={{ maxHeight: '40vh', minHeight: '10vh' }}>

@@ -283,26 +283,33 @@ export const useGame = () => {
     const saveStats = async () => {
       if (!gameState.currentRecipe || !['won', 'lost'].includes(gameState.gameStatus)) return;
       const { data: { user } } = await supabase.auth.getUser();
-      const guestId = getOrCreateGuestId();
-      await supabase.from('game_results').insert([
-        {
-          user_id: user ? user.id : null,
-          guest_id: user ? null : guestId,
-          recipe_id: gameState.currentRecipe.id,
-          recipe_name: gameState.currentRecipe.name,
-          attempts: gameState.attempts,
-          hints_used: gameState.hintsUsed,
-          time_spent: gameState.endTime && gameState.startTime ? gameState.endTime - gameState.startTime : 0,
-          won: gameState.gameStatus === 'won',
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      if (!user) {
+        console.log('Not saving game result: user not signed in.');
+        return;
+      }
+      const insertData = {
+        user_id: user.id,
+        recipe_id: gameState.currentRecipe.id,
+        recipe_name: gameState.currentRecipe.name,
+        attempts: gameState.attempts,
+        hints_used: gameState.hintsUsed,
+        time_spent: gameState.endTime && gameState.startTime ? gameState.endTime - gameState.startTime : 0,
+        won: gameState.gameStatus === 'won',
+        created_at: new Date().toISOString(),
+      };
+      console.log('Attempting to insert game result:', insertData);
+      const { error } = await supabase.from('game_results').insert([insertData]);
+      if (error) {
+        console.error('Error inserting game result:', error);
+        alert('Failed to save game result: ' + error.message);
+      } else {
+        console.log('Game result saved successfully.');
+      }
       // Fetch current stats
       let { data: stats } = await supabase
         .from('user_stats')
         .select('*')
         .eq('user_id', user ? user.id : null)
-        .eq('guest_id', user ? null : guestId)
         .single();
       const won = gameState.gameStatus === 'won';
       const today = new Date();
@@ -355,7 +362,6 @@ export const useGame = () => {
       }
       await supabase.from('user_stats').upsert({
         user_id: user ? user.id : null,
-        guest_id: user ? null : guestId,
         ...newStats,
       });
       // Optionally, you can set a state here to trigger animation in the header
@@ -363,7 +369,7 @@ export const useGame = () => {
     };
     saveStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState.gameStatus, supabase]);
+  }, [gameState]);
 
   // Start a practice game with a given recipe
   const startPracticeGame = useCallback((recipe: Recipe) => {
