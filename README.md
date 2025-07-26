@@ -44,6 +44,8 @@ A fun and modern web-based word-guessing game similar to Wordle, but instead of 
 - **Statistics**: View total games played and recipes learned
 - **Collection View**: Browse all your learned recipes with ingredients
 
+
+
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 14 with TypeScript
@@ -125,9 +127,23 @@ A fun and modern web-based word-guessing game similar to Wordle, but instead of 
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
    );
 
+   -- Create anonymous_game_results table
+   CREATE TABLE anonymous_game_results (
+     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+     session_id TEXT NOT NULL,
+     recipe_id UUID REFERENCES recipes(id),
+     recipe_name TEXT NOT NULL,
+     attempts INTEGER NOT NULL,
+     hints_used INTEGER NOT NULL,
+     time_spent INTEGER NOT NULL,
+     won BOOLEAN NOT NULL,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+
    -- Enable Row Level Security
    ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
    ALTER TABLE game_results ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE anonymous_game_results ENABLE ROW LEVEL SECURITY;
 
    -- Create policies
    CREATE POLICY "Recipes are viewable by everyone" ON recipes
@@ -138,6 +154,12 @@ A fun and modern web-based word-guessing game similar to Wordle, but instead of 
 
    CREATE POLICY "Users can view their own game results" ON game_results
      FOR SELECT USING (auth.uid() = user_id);
+
+   CREATE POLICY "Anyone can insert anonymous game results" ON anonymous_game_results
+     FOR INSERT WITH CHECK (true);
+
+   CREATE POLICY "Only authenticated users can view anonymous game results" ON anonymous_game_results
+     FOR SELECT USING (auth.role() = 'authenticated');
    ```
 
 3. **Insert sample data**

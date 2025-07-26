@@ -102,6 +102,42 @@ export interface Database {
           last_played?: string;
         };
       };
+
+      anonymous_game_results: {
+        Row: {
+          id: string;
+          session_id: string;
+          recipe_id: string;
+          recipe_name: string;
+          attempts: number;
+          hints_used: number;
+          time_spent: number;
+          won: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          recipe_id: string;
+          recipe_name: string;
+          attempts: number;
+          hints_used: number;
+          time_spent: number;
+          won: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          recipe_id?: string;
+          recipe_name?: string;
+          attempts?: number;
+          hints_used?: number;
+          time_spent?: number;
+          won?: boolean;
+          created_at?: string;
+        };
+      };
     }
   }
 } 

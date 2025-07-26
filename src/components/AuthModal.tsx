@@ -8,7 +8,7 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [optIn, setOptIn] = useState(false);
+
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,10 +20,11 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       if (error) setError(error.message);
       else onClose();
     } else {
+
+
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) setError(error.message);
       else setMessage('Check your email to confirm your account!');
-      // You can send optIn to your backend here if needed
     }
     setLoading(false);
   };
@@ -60,20 +61,7 @@ export const AuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               required
             />
           </div>
-          {mode === 'signup' && (
-            <div className="flex items-center gap-2 mt-2">
-              <input
-                id="optin"
-                type="checkbox"
-                checked={optIn}
-                onChange={e => setOptIn(e.target.checked)}
-                className="accent-green-400 rounded border border-gray-300 dark:border-gray-600"
-              />
-              <label htmlFor="optin" className="text-sm text-gray-700 dark:text-gray-200 select-none">
-                I want to receive Foodle news and updates
-              </label>
-            </div>
-          )}
+
           <button type="submit" className="w-full py-3 text-lg rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold transition focus:outline-none focus:ring-2 focus:ring-green-400">
             {loading ? 'Loading...' : mode === 'login' ? 'Log In' : 'Sign Up'}
           </button>

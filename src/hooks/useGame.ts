@@ -283,12 +283,8 @@ export const useGame = () => {
     const saveStats = async () => {
       if (!gameState.currentRecipe || !['won', 'lost'].includes(gameState.gameStatus)) return;
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('Not saving game result: user not signed in.');
-        return;
-      }
+      
       const insertData = {
-        user_id: user.id,
         recipe_id: gameState.currentRecipe.id,
         recipe_name: gameState.currentRecipe.name,
         attempts: gameState.attempts,
@@ -297,75 +293,96 @@ export const useGame = () => {
         won: gameState.gameStatus === 'won',
         created_at: new Date().toISOString(),
       };
-      console.log('Attempting to insert game result:', insertData);
-      const { error } = await supabase.from('game_results').insert([insertData]);
-      if (error) {
-        console.error('Error inserting game result:', error);
-        alert('Failed to save game result: ' + error.message);
-      } else {
-        console.log('Game result saved successfully.');
-      }
-      // Fetch current stats
-      let { data: stats } = await supabase
-        .from('user_stats')
-        .select('*')
-        .eq('user_id', user ? user.id : null)
-        .single();
-      const won = gameState.gameStatus === 'won';
-      const today = new Date();
-      const todayStr = today.toISOString().slice(0, 10);
-      let newStats = {
-        games_played: 1,
-        games_won: won ? 1 : 0,
-        current_streak: won ? 1 : 0,
-        best_streak: won ? 1 : 0,
-        last_played: today.toISOString(),
-      };
-      let streakUpdatedToday = false;
-      if (stats) {
-        newStats.games_played = stats.games_played + 1;
-        newStats.games_won = stats.games_won + (won ? 1 : 0);
-        // Check last_played date for streak logic
-        if (won) {
-          const lastPlayedDate = stats.last_played ? new Date(stats.last_played) : null;
-          if (lastPlayedDate) {
-            // Calculate difference in days (UTC)
-            const lastPlayedUTC = Date.UTC(lastPlayedDate.getUTCFullYear(), lastPlayedDate.getUTCMonth(), lastPlayedDate.getUTCDate());
-            const todayUTC = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
-            const diffDays = Math.floor((todayUTC - lastPlayedUTC) / (1000 * 60 * 60 * 24));
-            if (diffDays === 1) {
-              // Consecutive day, increment streak
-              newStats.current_streak = stats.current_streak + 1;
-              streakUpdatedToday = true;
-            } else if (diffDays === 0) {
-              // Already played today, keep streak
-              newStats.current_streak = stats.current_streak;
+
+      if (user) {
+        // Save to game_results table for logged-in users
+        const userInsertData = {
+          ...insertData,
+          user_id: user.id,
+        };
+        console.log('Attempting to insert game result for user:', userInsertData);
+        const { error } = await supabase.from('game_results').insert([userInsertData]);
+        if (error) {
+          console.error('Error inserting game result:', error);
+          alert('Failed to save game result: ' + error.message);
+        } else {
+          console.log('Game result saved successfully for user.');
+        }
+
+        // Update user stats
+        let { data: stats } = await supabase
+          .from('user_stats')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        const won = gameState.gameStatus === 'won';
+        const today = new Date();
+        let newStats = {
+          games_played: 1,
+          games_won: won ? 1 : 0,
+          current_streak: won ? 1 : 0,
+          best_streak: won ? 1 : 0,
+          last_played: today.toISOString(),
+        };
+        let streakUpdatedToday = false;
+        if (stats) {
+          newStats.games_played = stats.games_played + 1;
+          newStats.games_won = stats.games_won + (won ? 1 : 0);
+          // Check last_played date for streak logic
+          if (won) {
+            const lastPlayedDate = stats.last_played ? new Date(stats.last_played) : null;
+            if (lastPlayedDate) {
+              // Calculate difference in days (UTC)
+              const lastPlayedUTC = Date.UTC(lastPlayedDate.getUTCFullYear(), lastPlayedDate.getUTCMonth(), lastPlayedDate.getUTCDate());
+              const todayUTC = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+              const diffDays = Math.floor((todayUTC - lastPlayedUTC) / (1000 * 60 * 60 * 24));
+              if (diffDays === 1) {
+                // Consecutive day, increment streak
+                newStats.current_streak = stats.current_streak + 1;
+                streakUpdatedToday = true;
+              } else if (diffDays === 0) {
+                // Already played today, keep streak
+                newStats.current_streak = stats.current_streak;
+              } else {
+                // Missed a day, reset streak
+                newStats.current_streak = 1;
+                streakUpdatedToday = true;
+              }
             } else {
-              // Missed a day, reset streak
               newStats.current_streak = 1;
               streakUpdatedToday = true;
             }
           } else {
-            newStats.current_streak = 1;
-            streakUpdatedToday = true;
+            // Lost, reset streak
+            newStats.current_streak = 0;
           }
+          newStats.best_streak = won
+            ? Math.max(stats.best_streak, newStats.current_streak)
+            : stats.best_streak;
+          newStats.last_played = today.toISOString();
         } else {
-          // Lost, reset streak
-          newStats.current_streak = 0;
+          if (won) streakUpdatedToday = true;
         }
-        newStats.best_streak = won
-          ? Math.max(stats.best_streak, newStats.current_streak)
-          : stats.best_streak;
-        newStats.last_played = today.toISOString();
+        await supabase.from('user_stats').upsert({
+          user_id: user.id,
+          ...newStats,
+        });
       } else {
-        if (won) streakUpdatedToday = true;
+        // Save to anonymous_game_results table for anonymous users
+        const sessionId = getOrCreateGuestId();
+        const anonymousInsertData = {
+          ...insertData,
+          session_id: sessionId,
+        };
+        console.log('Attempting to insert anonymous game result:', anonymousInsertData);
+        const { error } = await supabase.from('anonymous_game_results').insert([anonymousInsertData]);
+        if (error) {
+          console.error('Error inserting anonymous game result:', error);
+          // Don't show alert for anonymous users, just log the error
+        } else {
+          console.log('Anonymous game result saved successfully.');
+        }
       }
-      await supabase.from('user_stats').upsert({
-        user_id: user ? user.id : null,
-        ...newStats,
-      });
-      // Optionally, you can set a state here to trigger animation in the header
-      // e.g., setStreakUpdatedToday(streakUpdatedToday);
     };
     saveStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
