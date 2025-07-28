@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: 'FOODLE - Food Ingredient Guessing Game',
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="arcade-banner">🍔 FOODLE ARCADE EDITION 🍔</div>
         {children}
         <div className="scanlines" />
+        <Analytics />
       </body>
     </html>
   );
