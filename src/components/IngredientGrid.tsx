@@ -59,9 +59,11 @@ export const IngredientGrid: React.FC<IngredientGridProps> = ({
         </span>
       );
     }
-    // Show '?' for unguessed
+    // Show underscores for unguessed ingredients
     return (
-      <span className="text-gray-300 dark:text-gray-600 font-bold text-lg md:text-xl opacity-70">?</span>
+      <span className="text-gray-500 dark:text-gray-400 font-bold text-lg md:text-xl opacity-80 tracking-wider">
+        {'_'.repeat(ingredient.length)}
+      </span>
     );
   }
 
